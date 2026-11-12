@@ -24,5 +24,6 @@ void drawUi(Canvas& canvas, const UiState& state);
 void drawBrowser(Canvas& canvas, const FileBrowser& browser);
 void drawLoading(Canvas& canvas, const std::string& filename);
 void drawExitPrompt(Canvas& canvas, float progress);
+void drawAxisGizmo(Canvas& canvas, const Camera& camera, const Rect& viewport);
 
 #endif  // STLVIEWER_UI_H

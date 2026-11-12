@@ -79,8 +79,8 @@ void printUsage(const char* argv0) {
         "Viewer keys:\n"
         "  Arrows rotate, Alt+arrows move the rotation center,\n"
         "  Enter/Space zoom, R reset, 0 fit, W wire/solid,\n"
-        "  A auto-rotate, S screenshot, H help,\n"
-        "  Esc returns to the file browser; hold 3s to exit.\n"
+        "  B file list, A auto-rotate, S screenshot, H help,\n"
+        "  hold Esc 3s to exit.\n"
         "\n"
         "Browser keys:\n"
         "  Up/Down select, PgUp/PgDn page, Enter open,\n"
@@ -244,7 +244,10 @@ void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
         canvas.line(cx, cy - 4, cx, cy + 4, Theme::kAccent);
     }
 
-    if (!no_ui) drawUi(canvas, ui);
+    if (!no_ui) {
+        drawAxisGizmo(canvas, camera, viewport);
+        drawUi(canvas, ui);
+    }
 }
 
 bool isArrowKey(Key key) {
@@ -485,6 +488,15 @@ int runInteractive(const Options& options) {
         } else if (key == Key::Wire) {
             wireframe = !wireframe;
             dirty = true;
+        } else if (key == Key::Files) {
+            help = false;
+            mode = AppMode::Browser;
+            browser.reload();
+            if (!current_path.empty()) {
+                browser.selectPath(current_path);
+            }
+            for (HeldKey& state : held) state.active = false;
+            dirty = true;
         } else if (key == Key::Help) {
             help = !help;
             dirty = true;
@@ -586,16 +598,9 @@ int runInteractive(const Options& options) {
                         if (duration >= kExitHold) {
                             running = false;
                         } else if (mode == AppMode::Viewer) {
-                            if (help) {
-                                help = false;
-                            } else {
-                                mode = AppMode::Browser;
-                                browser.reload();
-                                if (!current_path.empty()) {
-                                    browser.selectPath(current_path);
-                                }
-                                for (HeldKey& state : held) state.active = false;
-                            }
+                            // Short Esc only closes the help overlay; the file
+                            // browser is opened with B.
+                            if (help) help = false;
                         }
                         // Always repaint so the prompt disappears immediately.
                         dirty = true;

@@ -135,9 +135,12 @@ R            reset view and center
 0            fit to screen and recenter
 W            wireframe / solid
 A            auto-rotate
-Esc          back to the file browser
+B            open the file list
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
+
+The viewer shows a compact red/green/blue XYZ orientation gizmo in the
+top-right corner of the 3D viewport.
 
 Status bar: file name, triangle count, fps, quality mode.
 

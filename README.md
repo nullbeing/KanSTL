@@ -22,6 +22,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Wireframe mode with depth-based shading (`W` toggles)
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
+- Small red/green/blue XYZ orientation gizmo in the top-right corner
+- `B` opens the file list; `Esc` is exit-only (hold 3 seconds)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Offscreen PNG rendering for development without a device
 - Built-in benchmark mode
@@ -130,9 +132,10 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `0` | Fit to screen and recenter |
 | `W` | Toggle solid / wireframe |
 | `A` | Toggle auto-rotate |
+| `B` | Open the file list |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |
-| `Esc` | Back to browser / close help; hold 3s to exit |
+| `Esc` | Close help; hold 3s to exit |
 
 On the Cardputer Zero, `F` / `Z` / `X` / `C` are accepted as arrow keys as well.
 

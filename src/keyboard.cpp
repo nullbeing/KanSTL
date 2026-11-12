@@ -96,6 +96,8 @@ Key translate(int code) {
             return Key::Help;
         case KEY_S:
             return Key::Shot;
+        case KEY_B:
+            return Key::Files;
         case KEY_BACKSPACE:
             return Key::Back;
         case KEY_ESC:
