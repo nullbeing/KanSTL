@@ -154,7 +154,7 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `Enter` | Zoom in |
 | `Space` | Zoom out |
 | `R` | Reset view and center |
-| `0` | Fit to screen and recenter |
+| `0` | Fit the model to fill the viewport and recenter |
 | `7` | Cycle solid / edges / matcap / wireframe |
 | `6` | Cycle auto-rotate off / horizontal / vertical |
 | `8` | Open the file list |

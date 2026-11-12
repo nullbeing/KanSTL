@@ -136,7 +136,7 @@ Alt+arrows   move the rotation center along screen axes
 Enter        zoom in
 Space        zoom out
 R            reset view and center
-0            fit to screen and recenter
+0            fit projected bounds to the viewport and recenter
 7            cycle solid / edges / matcap / wireframe
 6            cycle auto-rotate off / horizontal yaw / pitch tumble
 8            open the file list (under the on-screen pill)

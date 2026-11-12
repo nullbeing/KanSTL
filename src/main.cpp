@@ -241,6 +241,44 @@ Rect activeViewport(const Canvas& canvas, bool no_ui) {
     return viewportRect(canvas.width(), canvas.height());
 }
 
+// Zoom that makes the current orientation fill the viewport, based on the
+// projected bounding box rather than the model's largest 3D extent.
+float fittedZoom(const Mesh& mesh, const Camera& camera, const Rect& viewport) {
+    if (viewport.w <= 0 || viewport.h <= 0) return 1.0f;
+    const auto& vertices = mesh.welded_vertices.empty()
+                               ? mesh.vertices
+                               : mesh.welded_vertices;
+    if (vertices.empty()) return 1.0f;
+
+    const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
+    const float pitch =
+        camera.pitch_deg * 3.14159265358979323846f / 180.0f;
+    const float cp = std::cos(pitch);
+    const float sp = std::sin(pitch);
+    const float cy = std::cos(yaw);
+    const float sy = std::sin(yaw);
+
+    float max_x = 0.0f;
+    float max_y = 0.0f;
+    for (const Vec3& v : vertices) {
+        const float y1 = v.y * cp - v.z * sp;
+        const float z1 = v.y * sp + v.z * cp;
+        const float x2 = v.x * cy + z1 * sy;
+        max_x = std::max(max_x, std::fabs(x2));
+        max_y = std::max(max_y, std::fabs(y1));
+    }
+    if (max_x < 1e-6f || max_y < 1e-6f) return 1.0f;
+
+    const float base_scale =
+        0.5f * static_cast<float>(std::min(viewport.w, viewport.h)) * 0.92f;
+    const float scale_x =
+        static_cast<float>(viewport.w) * 0.5f * 0.92f / max_x;
+    const float scale_y =
+        static_cast<float>(viewport.h) * 0.5f * 0.92f / max_y;
+    const float zoom = std::min(scale_x, scale_y) / base_scale;
+    return std::max(0.15f, std::min(12.0f, zoom));
+}
+
 void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
                  Renderer& renderer, const UiState& ui, bool no_ui,
                  RenderMode mode) {
@@ -494,10 +532,11 @@ int runInteractive(const Options& options) {
             camera = home_camera;
             dirty = true;
         } else if (key == Key::Fit) {
-            camera.zoom = 1.0f;
             camera.pivot_x = 0.0f;
             camera.pivot_y = 0.0f;
             camera.pivot_z = 0.0f;
+            camera.zoom = fittedZoom(
+                mesh, camera, activeViewport(canvas, options.no_ui));
             dirty = true;
         } else if (key == Key::Auto) {
             if (auto_mode == AutoRotateMode::Off) {
