@@ -10,7 +10,7 @@
 enum class AutoRotateMode {
     Off,
     Horizontal,
-    Roll,
+    Vertical,
 };
 
 struct UiState {

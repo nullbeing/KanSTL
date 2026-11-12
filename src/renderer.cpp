@@ -97,13 +97,10 @@ void Renderer::project(const Mesh& mesh, const Camera& camera,
 
     const float yaw = camera.yaw_deg * kDegToRad;
     const float pitch = camera.pitch_deg * kDegToRad;
-    const float roll = camera.roll_deg * kDegToRad;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
-    const float cr = std::cos(roll);
-    const float sr = std::sin(roll);
 
     const float base_scale =
         0.5f * static_cast<float>(std::min(viewport.w, viewport.h)) * 0.92f;
@@ -122,11 +119,9 @@ void Renderer::project(const Mesh& mesh, const Camera& camera,
         const float z1 = vy * sp + vz * cp;
         const float x2 = vx * cy + z1 * sy;
         const float z2 = -vx * sy + z1 * cy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
 
-        screen_x_[i] = center_x + xr * scale;
-        screen_y_[i] = center_y - yr * scale;
+        screen_x_[i] = center_x + x2 * scale;
+        screen_y_[i] = center_y - y1 * scale;
         depth_[i] = z2;
     }
 }
@@ -173,8 +168,7 @@ void Renderer::renderWireframe(Canvas& canvas, const Rect& viewport) {
 
 void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
                            const Rect& viewport, float cp, float sp,
-                           float cy, float sy, float cr, float sr,
-                           bool matcap) {
+                           float cy, float sy, bool matcap) {
     const size_t pixel_count =
         static_cast<size_t>(canvas.width()) * canvas.height();
     zbuffer_.resize(pixel_count);
@@ -217,12 +211,10 @@ void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
         if (bx1 < bx0 || by1 < by0) continue;
 
         const Vec3& normal = mesh.normals[i / 3];
-        const float ny0 = normal.y * cp - normal.z * sp;
+        const float ny = normal.y * cp - normal.z * sp;
         const float nz1 = normal.y * sp + normal.z * cp;
-        const float nx0 = normal.x * cy + nz1 * sy;
+        const float nx = normal.x * cy + nz1 * sy;
         const float nz = -normal.x * sy + nz1 * cy;
-        const float nx = nx0 * cr - ny0 * sr;
-        const float ny = nx0 * sr + ny0 * cr;
 
         uint16_t color = 0;
         if (matcap) {
@@ -265,9 +257,6 @@ void Renderer::renderFeatureEdges(const Mesh& mesh, const Camera& camera,
     const auto& vertices = mesh.welded_vertices;
     if (vertices.empty() || mesh.edges.empty() || zbuffer_.empty()) return;
 
-    const float roll = camera.roll_deg * kDegToRad;
-    const float cr = std::cos(roll);
-    const float sr = std::sin(roll);
     const float base_scale =
         0.5f * static_cast<float>(std::min(viewport.w, viewport.h)) * 0.92f;
     const float scale = base_scale * camera.zoom;
@@ -288,11 +277,9 @@ void Renderer::renderFeatureEdges(const Mesh& mesh, const Camera& camera,
         const float z1 = vy * sp + vz * cp;
         const float x2 = vx * cy + z1 * sy;
         const float z2 = -vx * sy + z1 * cy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
 
-        edge_screen_x_[i] = center_x + xr * scale;
-        edge_screen_y_[i] = center_y - yr * scale;
+        edge_screen_x_[i] = center_x + x2 * scale;
+        edge_screen_y_[i] = center_y - y1 * scale;
         edge_depth_[i] = z2;
     }
 
@@ -414,15 +401,12 @@ void Renderer::render(const Mesh& mesh, const Camera& camera,
 
     const float yaw = camera.yaw_deg * kDegToRad;
     const float pitch = camera.pitch_deg * kDegToRad;
-    const float roll = camera.roll_deg * kDegToRad;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
-    const float cr = std::cos(roll);
-    const float sr = std::sin(roll);
 
-    renderSolid(mesh, canvas, viewport, cp, sp, cy, sy, cr, sr,
+    renderSolid(mesh, canvas, viewport, cp, sp, cy, sy,
                 mode == RenderMode::Matcap);
     if (mode == RenderMode::Edges) {
         renderFeatureEdges(mesh, camera, canvas, viewport, cp, sp, cy, sy);
