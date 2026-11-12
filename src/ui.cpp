@@ -152,7 +152,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int pill_h = 10;
     const int pill_x = 273 - pill_w / 2;
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
-    fillRoundRect(canvas, pill_x, pill_y, pill_w, pill_h, 4,
+    fillRoundRect(canvas, pill_x, pill_y, pill_w, pill_h, 2,
                   Theme::kPillBackground);
     canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
                 pill_y + (pill_h - 8) / 2, files_label, Theme::kPillText);
