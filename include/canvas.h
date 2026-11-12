@@ -21,6 +21,7 @@ public:
     void clear(uint16_t color);
 
     void pixel(int x, int y, uint16_t color);
+    void blendPixel(int x, int y, uint16_t color, float alpha);
     void line(int x0, int y0, int x1, int y1, uint16_t color);
     void fillRect(int x, int y, int w, int h, uint16_t color);
     void rect(int x, int y, int w, int h, uint16_t color);
@@ -57,9 +58,9 @@ constexpr uint16_t kWireFar = 0x1A69;     // dark teal
 constexpr uint16_t kPillBackground = 0xAEDC;  // light blue
 constexpr uint16_t kPillActive = 0x9725;      // mint green
 constexpr uint16_t kPillText = 0x0000;        // black
-constexpr uint16_t kDialogShadow = 0x0000;    // black drop shadow
+constexpr uint16_t kDialogShadow = 0x0008;      // deep blue shadow
 constexpr uint16_t kDialogBackground = 0x18C3;  // raised dark slate
-constexpr uint16_t kDialogBorder = 0x4A69;    // soft border
+constexpr uint16_t kDialogBorder = 0x4A69;      // soft border
 }  // namespace Theme
 
 #endif  // STLVIEWER_CANVAS_H

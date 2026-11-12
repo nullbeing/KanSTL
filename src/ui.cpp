@@ -60,6 +60,42 @@ void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
     }
 }
 
+void fillRoundRectBlend(Canvas& canvas, int x, int y, int w, int h,
+                        int radius, uint16_t color, float alpha) {
+    if (w <= 0 || h <= 0) return;
+    radius = std::max(0, std::min(radius, std::min(w / 2, h / 2)));
+
+    for (int row = 0; row < h; ++row) {
+        int inset = 0;
+        if (row < radius) {
+            const float dy = radius - (row + 0.5f);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        } else if (row >= h - radius) {
+            const float dy = (row + 0.5f) - (h - radius);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        }
+        for (int px = x + inset; px < x + w - inset; ++px) {
+            canvas.blendPixel(px, y + row, color, alpha);
+        }
+    }
+}
+
+void drawSoftShadow(Canvas& canvas, int px, int py, int w, int h,
+                    int radius) {
+    struct Layer {
+        int offset;
+        float alpha;
+    };
+    static const Layer layers[] = {
+        {4, 0.06f}, {3, 0.10f}, {2, 0.14f}, {1, 0.18f}};
+    for (const Layer& layer : layers) {
+        fillRoundRectBlend(canvas, px + layer.offset, py + layer.offset, w, h,
+                           radius, Theme::kDialogShadow, layer.alpha);
+    }
+}
+
 void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
                    const std::string& label, uint16_t background) {
     const int width = canvas.textWidth(label) + 6;
@@ -206,8 +242,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
 
-    fillRoundRect(canvas, px + 4, py + 4, panel_w, panel_h, radius,
-                  Theme::kDialogShadow);
+    drawSoftShadow(canvas, px, py, panel_w, panel_h, radius);
     fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
                   Theme::kDialogBorder);
     fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
@@ -372,9 +407,8 @@ void drawExitPrompt(Canvas& canvas, float progress) {
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
 
-    // Drop shadow, rounded border and raised panel.
-    fillRoundRect(canvas, px + 3, py + 3, panel_w, panel_h, radius,
-                  Theme::kDialogShadow);
+    // Layered blue shadow, rounded border and raised panel.
+    drawSoftShadow(canvas, px, py, panel_w, panel_h, radius);
     fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
                   Theme::kDialogBorder);
     fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,

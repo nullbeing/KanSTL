@@ -28,6 +28,29 @@ void Canvas::pixel(int x, int y, uint16_t color) {
     pixels_[static_cast<size_t>(y) * width_ + x] = color;
 }
 
+void Canvas::blendPixel(int x, int y, uint16_t color, float alpha) {
+    if (x < 0 || x >= width_ || y < 0 || y >= height_) return;
+    if (alpha <= 0.0f) return;
+    if (alpha >= 1.0f) {
+        pixels_[static_cast<size_t>(y) * width_ + x] = color;
+        return;
+    }
+
+    const uint16_t dst = pixels_[static_cast<size_t>(y) * width_ + x];
+    const int dr = (dst >> 11) & 0x1F;
+    const int dg = (dst >> 5) & 0x3F;
+    const int db = dst & 0x1F;
+    const int sr = (color >> 11) & 0x1F;
+    const int sg = (color >> 5) & 0x3F;
+    const int sb = color & 0x1F;
+
+    const int r = dr + static_cast<int>((sr - dr) * alpha + 0.5f);
+    const int g = dg + static_cast<int>((sg - dg) * alpha + 0.5f);
+    const int b = db + static_cast<int>((sb - db) * alpha + 0.5f);
+    pixels_[static_cast<size_t>(y) * width_ + x] =
+        static_cast<uint16_t>((r << 11) | (g << 5) | b);
+}
+
 void Canvas::line(int x0, int y0, int x1, int y1, uint16_t color) {
     // Liang-Barsky clip so zoomed-in wireframes do not walk hundreds of
     // off-screen pixels per edge.
