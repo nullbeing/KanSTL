@@ -60,6 +60,14 @@ void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
     }
 }
 
+void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
+                   const std::string& label) {
+    const int width = canvas.textWidth(label) + 6;
+    const int x = center_x - width / 2;
+    fillRoundRect(canvas, x, y, width, height, 2, Theme::kPillBackground);
+    canvas.text(x + 3, y + (height - 8) / 2, label, Theme::kPillText);
+}
+
 std::string humanSize(uint64_t bytes) {
     char buf[24];
     if (bytes >= 1024ULL * 1024ULL) {
@@ -166,21 +174,10 @@ void drawUi(Canvas& canvas, const UiState& state) {
     // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
         state.wireframe ? "wire" : styleName(state.style);
-    const int style_w = 42;
-    const int style_x = 217 - style_w / 2;
-    fillRoundRect(canvas, style_x, pill_y, style_w, pill_h, 2,
-                  Theme::kPillBackground);
-    canvas.text(style_x + (style_w - canvas.textWidth(style_label)) / 2,
-                pill_y + (pill_h - 8) / 2, style_label, Theme::kPillText);
+    drawLabelPill(canvas, 217, pill_y, pill_h, style_label);
 
     // Files button aligned with the "8" key (x=273).
-    const std::string files_label = "files";
-    const int pill_w = 36;
-    const int pill_x = 273 - pill_w / 2;
-    fillRoundRect(canvas, pill_x, pill_y, pill_w, pill_h, 2,
-                  Theme::kPillBackground);
-    canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
-                pill_y + (pill_h - 8) / 2, files_label, Theme::kPillText);
+    drawLabelPill(canvas, 273, pill_y, pill_h, "files");
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
