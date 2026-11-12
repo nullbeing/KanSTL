@@ -102,7 +102,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay.
     const int panel_w = 218;
-    const int panel_h = 132;
+    const int panel_h = 124;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
@@ -113,7 +113,6 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "ARROWS    ROTATE",
         "ENTER     ZOOM IN",
         "SPACE     ZOOM OUT",
-        "+ / -     ZOOM (ALT)",
         "R         RESET VIEW",
         "0         FIT TO SCREEN",
         "W         WIRE / SOLID",

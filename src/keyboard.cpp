@@ -59,7 +59,7 @@ std::vector<std::string> findCandidates() {
     return paths;
 }
 
-Key translate(int code, bool shift) {
+Key translate(int code) {
     switch (code) {
         case KEY_UP:
         case KEY_F:
@@ -73,14 +73,6 @@ Key translate(int code, bool shift) {
         case KEY_RIGHT:
         case KEY_C:
             return Key::Right;
-
-        case KEY_KPPLUS:
-            return Key::Plus;
-        case KEY_EQUAL:
-            return shift ? Key::Plus : Key::None;
-        case KEY_MINUS:
-        case KEY_KPMINUS:
-            return Key::Minus;
 
         case KEY_R:
             return Key::Reset;
@@ -117,7 +109,6 @@ void Keyboard::close() {
         ::close(fd_);
         fd_ = -1;
     }
-    shift_ = false;
 }
 
 bool Keyboard::open(const std::string& device_path, std::string& error) {
@@ -161,13 +152,9 @@ bool Keyboard::readEvent(Key& key, bool& pressed) {
         }
         if (ev.type != EV_KEY) continue;
 
-        if (ev.code == KEY_LEFTSHIFT || ev.code == KEY_RIGHTSHIFT) {
-            shift_ = ev.value != 0;
-            continue;
-        }
         if (ev.value == 2) continue;  // kernel auto-repeat; app does its own
 
-        Key translated = translate(ev.code, shift_);
+        Key translated = translate(ev.code);
         if (translated == Key::None) continue;
 
         key = translated;

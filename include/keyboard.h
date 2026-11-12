@@ -37,7 +37,6 @@ public:
 
 private:
     int fd_ = -1;
-    bool shift_ = false;
 };
 
 #endif  // STLVIEWER_KEYBOARD_H

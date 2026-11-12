@@ -124,7 +124,6 @@ Left/Right   yaw
 Up/Down      pitch
 Enter        zoom in
 Space        zoom out
-+ / -        zoom (alternate)
 R            reset view
 0            fit to screen
 W            wireframe / solid
