@@ -141,12 +141,13 @@ void drawUi(Canvas& canvas, const UiState& state) {
     // Pill button aligned with the "8" key (official x=273 on this panel).
     const std::string files_label = "files";
     const int pill_w = 44;
-    const int pill_h = kHintHeight;
+    const int pill_h = 10;
     const int pill_x = 273 - pill_w / 2;
-    fillPill(canvas, pill_x, hint_y, pill_w, pill_h,
+    const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
+    fillPill(canvas, pill_x, pill_y, pill_w, pill_h,
              Theme::kPillBackground);
     canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
-                hint_y + kTextTop, files_label, Theme::kPillText);
+                pill_y + (pill_h - 8) / 2, files_label, Theme::kPillText);
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
