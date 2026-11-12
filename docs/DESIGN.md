@@ -138,7 +138,7 @@ Space        zoom out
 R            reset view and center
 0            fit to screen and recenter
 7            cycle solid / edges / matcap
-6 / A        toggle auto-rotate
+6 / A        cycle auto-rotate off / horizontal / vertical
 W            toggle pure wireframe
 B / 8        open the file list (8 is under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
@@ -148,8 +148,8 @@ The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
 
-The bottom bar has three pills: an auto-rotate toggle at x=161 (`auto`, light
-blue when off, mint green when on) under the `6` key, a render-style button at x=217
+The bottom bar has three pills: an auto-rotate toggle at x=161 (`auto`,
+`auto h`, `auto v`; mint green when running) under the `6` key, a render-style button at x=217
 (`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a `files` button
 at x=273 under the `8` key. Both `8` and `B` open the file browser.
 

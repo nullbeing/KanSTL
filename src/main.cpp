@@ -377,7 +377,9 @@ int runInteractive(const Options& options) {
     Mesh mesh;
     bool have_model = false;
     std::string current_path;
-    bool auto_rotate = options.auto_start;
+    AutoRotateMode auto_mode =
+        options.auto_start ? AutoRotateMode::Horizontal : AutoRotateMode::Off;
+    float auto_pitch_direction = 1.0f;
     bool wireframe = options.wireframe;
     RenderMode style = options.style;
 
@@ -495,7 +497,13 @@ int runInteractive(const Options& options) {
             camera.pivot_z = 0.0f;
             dirty = true;
         } else if (key == Key::Auto) {
-            auto_rotate = !auto_rotate;
+            if (auto_mode == AutoRotateMode::Off) {
+                auto_mode = AutoRotateMode::Horizontal;
+            } else if (auto_mode == AutoRotateMode::Horizontal) {
+                auto_mode = AutoRotateMode::Vertical;
+            } else {
+                auto_mode = AutoRotateMode::Off;
+            }
             dirty = true;
         } else if (key == Key::Style) {
             wireframe = false;
@@ -581,7 +589,8 @@ int runInteractive(const Options& options) {
         // often enough for responsive key handling.
         auto loop_now = std::chrono::steady_clock::now();
         int timeout_ms = 16;
-        if (dirty || (mode == AppMode::Viewer && auto_rotate)) {
+        if (dirty ||
+            (mode == AppMode::Viewer && auto_mode != AutoRotateMode::Off)) {
             const double since_present =
                 std::chrono::duration<double>(loop_now - last_present).count() *
                 1000.0;
@@ -675,9 +684,23 @@ int runInteractive(const Options& options) {
             dirty = true;
         }
 
-        if (mode == AppMode::Viewer && auto_rotate) {
-            camera.yaw_deg += 40.0f * static_cast<float>(std::min(dt, 0.1));
-            while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
+        if (mode == AppMode::Viewer &&
+            auto_mode != AutoRotateMode::Off) {
+            const float step =
+                static_cast<float>(std::min(dt, 0.1));
+            if (auto_mode == AutoRotateMode::Horizontal) {
+                camera.yaw_deg += 40.0f * step;
+                while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
+            } else {
+                camera.pitch_deg += 20.0f * auto_pitch_direction * step;
+                if (camera.pitch_deg > 80.0f) {
+                    camera.pitch_deg = 80.0f;
+                    auto_pitch_direction = -1.0f;
+                } else if (camera.pitch_deg < -80.0f) {
+                    camera.pitch_deg = -80.0f;
+                    auto_pitch_direction = 1.0f;
+                }
+            }
             dirty = true;
         }
 
@@ -706,7 +729,7 @@ int runInteractive(const Options& options) {
                 ui.mesh = &mesh;
                 ui.camera = camera;
                 ui.fps = fps;
-                ui.auto_rotate = auto_rotate;
+                ui.auto_mode = auto_mode;
                 ui.style = style;
                 ui.wireframe = wireframe;
                 ui.help = help;

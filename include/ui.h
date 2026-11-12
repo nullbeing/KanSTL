@@ -7,11 +7,17 @@
 #include "file_browser.h"
 #include "renderer.h"
 
+enum class AutoRotateMode {
+    Off,
+    Horizontal,
+    Vertical,
+};
+
 struct UiState {
     const Mesh* mesh = nullptr;
     Camera camera;
     int fps = 0;
-    bool auto_rotate = false;
+    AutoRotateMode auto_mode = AutoRotateMode::Off;
     RenderMode style = RenderMode::Solid;
     bool wireframe = false;
     bool help = false;
