@@ -148,7 +148,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Pill button aligned with the "8" key (official x=273 on this panel).
     const std::string files_label = "files";
-    const int pill_w = 44;
+    const int pill_w = 36;
     const int pill_h = 10;
     const int pill_x = 273 - pill_w / 2;
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
