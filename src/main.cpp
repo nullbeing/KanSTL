@@ -145,17 +145,27 @@ std::string scanForStl(const std::filesystem::path& dir) {
     std::error_code ec;
     if (!std::filesystem::is_directory(dir, ec)) return {};
 
-    std::vector<std::string> found;
+    // Pick the most recently modified model so a freshly uploaded file opens
+    // without having to rename or delete older ones.
+    std::string newest;
+    std::filesystem::file_time_type newest_time{};
     for (const auto& entry : std::filesystem::directory_iterator(dir, ec)) {
         if (ec) break;
         if (!entry.is_regular_file(ec)) continue;
         std::string ext = entry.path().extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(),
                        [](unsigned char c) { return std::tolower(c); });
-        if (ext == ".stl") found.push_back(entry.path().string());
+        if (ext != ".stl") continue;
+
+        std::error_code time_error;
+        const auto modified = entry.last_write_time(time_error);
+        if (time_error) continue;
+        if (newest.empty() || modified > newest_time) {
+            newest = entry.path().string();
+            newest_time = modified;
+        }
     }
-    std::sort(found.begin(), found.end());
-    return found.empty() ? std::string() : found.front();
+    return newest;
 }
 
 std::string findDefaultModel() {

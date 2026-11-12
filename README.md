@@ -65,9 +65,9 @@ cmake --build build-aarch64 -j$(nproc)
 ./stlviewer --bench 300 --wireframe examples/icosphere.stl
 ```
 
-If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the first
-`.stl` in the current directory, then the first `.stl` in `~/models`, then the
-first `.stl` in `$HOME`.
+If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the most
+recently modified `.stl` in the current directory, `~/models`, or `$HOME`.
+Uploading a newer model is enough to make it the default.
 
 On the desktop, `--shot` and `--bench` need no framebuffer or keyboard.
 
