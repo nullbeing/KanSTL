@@ -80,11 +80,11 @@ void printUsage(const char* argv0) {
         "  Arrows rotate, Alt+arrows move the rotation center,\n"
         "  Enter/Space zoom, R reset, 0 fit, W wire/solid,\n"
         "  A auto-rotate, S screenshot, H help,\n"
-        "  Esc returns to the file browser; hold Esc to exit.\n"
+        "  Esc returns to the file browser; hold 3s to exit.\n"
         "\n"
         "Browser keys:\n"
         "  Up/Down select, PgUp/PgDn page, Enter open, Esc parent,\n"
-        "  R refresh; hold Esc to exit.\n",
+        "  R refresh; hold 3s to exit.\n",
         argv0);
 }
 
@@ -423,7 +423,9 @@ int runInteractive(const Options& options) {
     auto last_present = now;
     auto last_keepalive = now;
     auto esc_pressed = now;
+    bool esc_down = false;
     double last_render_seconds = 0.0;
+    constexpr auto kExitHold = std::chrono::milliseconds(3000);
 
     auto saveScreenshot = [&]() {
         const std::string path = "/tmp/stlviewer_shot.png";
@@ -562,6 +564,8 @@ int runInteractive(const Options& options) {
                 if (pressed) {
                     if (key == Key::Esc) {
                         esc_pressed = std::chrono::steady_clock::now();
+                        esc_down = true;
+                        dirty = true;
                     } else if (mode == AppMode::Viewer) {
                         handleViewerPress(key);
                     } else {
@@ -569,9 +573,10 @@ int runInteractive(const Options& options) {
                     }
                 } else {
                     if (key == Key::Esc) {
+                        esc_down = false;
                         const auto duration =
                             std::chrono::steady_clock::now() - esc_pressed;
-                        if (duration >= std::chrono::milliseconds(600)) {
+                        if (duration >= kExitHold) {
                             running = false;
                         } else if (mode == AppMode::Viewer) {
                             if (help) {
@@ -599,6 +604,13 @@ int runInteractive(const Options& options) {
         }
 
         now = std::chrono::steady_clock::now();
+        if (esc_down) {
+            if (now - esc_pressed >= kExitHold) {
+                running = false;
+            }
+            dirty = true;
+        }
+
         const double dt =
             std::chrono::duration<double>(now - last_frame).count();
         last_frame = now;
@@ -638,9 +650,18 @@ int runInteractive(const Options& options) {
         }
 
         if (dirty) {
+            float exit_progress = 0.0f;
+            if (esc_down) {
+                const double held =
+                    std::chrono::duration<double>(now - esc_pressed).count();
+                exit_progress =
+                    static_cast<float>(held / 3.0);
+            }
+
             const auto render_start = std::chrono::steady_clock::now();
             if (mode == AppMode::Browser) {
                 drawBrowser(canvas, browser);
+                if (esc_down) drawExitPrompt(canvas, exit_progress);
                 framebuffer.present(canvas);
                 last_render_seconds = 0.0;
             } else if (have_model) {
@@ -656,6 +677,7 @@ int runInteractive(const Options& options) {
                 renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
                             wireframe ? RenderMode::Wireframe
                                       : RenderMode::Solid);
+                if (esc_down) drawExitPrompt(canvas, exit_progress);
                 framebuffer.present(canvas);
 
                 const auto render_end = std::chrono::steady_clock::now();

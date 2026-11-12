@@ -23,5 +23,6 @@ Rect viewportRect(int canvas_width, int canvas_height);
 void drawUi(Canvas& canvas, const UiState& state);
 void drawBrowser(Canvas& canvas, const FileBrowser& browser);
 void drawLoading(Canvas& canvas, const std::string& filename);
+void drawExitPrompt(Canvas& canvas, float progress);
 
 #endif  // STLVIEWER_UI_H

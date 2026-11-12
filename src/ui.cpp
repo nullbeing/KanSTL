@@ -158,7 +158,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "A         AUTO ROTATE",
         "S         SCREENSHOT",
         "H         CLOSE HELP",
-        "ESC       HOLD TO EXIT",
+        "ESC       HOLD 3S EXIT",
     };
     int y = py + 20;
     for (const char* line : lines) {
@@ -236,7 +236,7 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     } else {
         canvas.text(kTextLeft, hint_y + kTextTop,
                     "ENT OPEN  ESC UP  R REFRESH", Theme::kText);
-        drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD ESC EXIT",
+        drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD 3S EXIT",
                       Theme::kTextDim);
     }
 }
@@ -254,5 +254,38 @@ void drawLoading(Canvas& canvas, const std::string& filename) {
                 Theme::kTextBright);
     const std::string wait = "PLEASE WAIT";
     canvas.text((w - canvas.textWidth(wait)) / 2, h / 2 + 16, wait,
+                Theme::kTextDim);
+}
+
+void drawExitPrompt(Canvas& canvas, float progress) {
+    const int w = canvas.width();
+    const int h = canvas.height();
+    const int panel_w = 230;
+    const int panel_h = 58;
+    const int px = (w - panel_w) / 2;
+    const int py = (h - panel_h) / 2;
+
+    canvas.fillRect(px, py, panel_w, panel_h, Theme::kBarBackground);
+    canvas.rect(px, py, panel_w, panel_h, Theme::kAccent);
+
+    const std::string title = "HOLD ESC 3S TO EXIT";
+    canvas.text((w - canvas.textWidth(title)) / 2, py + 8, title,
+                Theme::kTextBright);
+
+    const int bar_w = 200;
+    const int bar_h = 8;
+    const int bar_x = (w - bar_w) / 2;
+    const int bar_y = py + 26;
+    canvas.rect(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2,
+                Theme::kTextDim);
+
+    progress = std::max(0.0f, std::min(1.0f, progress));
+    const int fill = static_cast<int>(bar_w * progress);
+    if (fill > 0) {
+        canvas.fillRect(bar_x, bar_y, fill, bar_h, Theme::kAccent);
+    }
+
+    const std::string cancel = "RELEASE TO CANCEL";
+    canvas.text((w - canvas.textWidth(cancel)) / 2, py + 42, cancel,
                 Theme::kTextDim);
 }

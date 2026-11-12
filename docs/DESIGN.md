@@ -135,7 +135,8 @@ R            reset view and center
 0            fit to screen and recenter
 W            wireframe / solid
 A            auto-rotate
-Esc          back to the file browser; long press exits
+Esc          back to the file browser
+Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
 
 Status bar: file name, triangle count, fps, quality mode.
@@ -146,7 +147,8 @@ File browser:
 Up/Down      select
 PgUp/PgDn    page
 Enter        open folder or model
-Esc          parent folder; long press exits
+Esc          parent folder
+Esc (3s)     hold to exit, with the same progress prompt
 R            reload
 ```
 

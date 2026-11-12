@@ -16,6 +16,7 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 
 - In-app file browser: browse folders, open `.stl` files, remembers the last
   directory, shows file sizes and load errors
+- Esc-to-exit needs a deliberate 3 second hold, with an on-screen progress bar
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
 - Wireframe mode with depth-based shading (`W` toggles)
@@ -109,7 +110,7 @@ Wireframe mode (`W`):
 | `Enter` | Open folder / model |
 | `Esc` | Parent folder |
 | `R` | Refresh |
-| `Esc` (hold) | Exit |
+| `Esc` (hold 3s) | Exit, with an on-screen countdown |
 
 Only folders and `.stl` files are listed. The last directory and file selection
 are remembered in `~/.config/stlviewer/last_dir`.
@@ -128,9 +129,13 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `A` | Toggle auto-rotate |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |
-| `Esc` | Back to browser; close help; hold to exit |
+| `Esc` | Back to browser / close help; hold 3s to exit |
 
 On the Cardputer Zero, `F` / `Z` / `X` / `C` are accepted as arrow keys as well.
+
+Holding `Esc` for 3 seconds exits; a progress prompt appears while holding:
+
+![Exit prompt](docs/images/exit-prompt.png)
 
 ## Install on the device
 
