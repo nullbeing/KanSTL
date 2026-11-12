@@ -4,9 +4,11 @@
 
 - M1 complete: STL loader, wireframe renderer, keyboard rotation/zoom, pixel UI,
   offscreen PNG rendering, benchmark mode
-- Device measurement (CM0, 12,000 triangles): 12.5 ms/frame raw render
-  (~80 fps); interactive auto-rotate is paced at ~60 fps
-- M2 next: solid shading with a z-buffer, backface culling, wireframe toggle
+- M2 complete: z-buffer solid rendering, flat shading, backface culling,
+  `W` wireframe toggle, solid mode is the default
+- Device measurement (CM0, 12,000 triangles): solid 7.8 ms/frame (~128 fps),
+  wireframe 12.6 ms/frame (~79 fps); interactive rendering is paced at ~60 fps
+- M3 next: in-app file browser, remembered last directory, error/loading states
 
 ## Scope
 

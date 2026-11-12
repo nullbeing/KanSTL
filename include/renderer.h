@@ -19,16 +19,26 @@ struct Rect {
     int h = 0;
 };
 
-// Wireframe renderer for M1. Solid shading / z-buffer comes in M2.
-class WireRenderer {
+enum class RenderMode {
+    Solid,
+    Wireframe,
+};
+
+class Renderer {
 public:
     void render(const Mesh& mesh, const Camera& camera, Canvas& canvas,
-                const Rect& viewport);
+                const Rect& viewport, RenderMode mode);
 
 private:
+    void project(const Mesh& mesh, const Camera& camera, const Rect& viewport);
+    void renderWireframe(Canvas& canvas, const Rect& viewport);
+    void renderSolid(const Mesh& mesh, Canvas& canvas, const Rect& viewport,
+                     float cp, float sp, float cy, float sy);
+
     std::vector<float> screen_x_;
     std::vector<float> screen_y_;
     std::vector<float> depth_;
+    std::vector<float> zbuffer_;
 };
 
 #endif  // STLVIEWER_RENDERER_H

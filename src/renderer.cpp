@@ -6,14 +6,39 @@
 namespace {
 
 constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
+constexpr float kAmbient = 0.30f;
+constexpr float kDiffuse = 0.70f;
+
+// Light direction in camera space, from the upper left front.
+constexpr float kLightX = -0.352f;
+constexpr float kLightY = 0.553f;
+constexpr float kLightZ = 0.755f;
+
+constexpr uint16_t kBaseColor = rgb565(120, 200, 230);
+
+inline float edge(float ax, float ay, float bx, float by, float px,
+                  float py) {
+    return (px - ax) * (by - ay) - (py - ay) * (bx - ax);
+}
+
+inline uint16_t shade(uint16_t base, float intensity) {
+    if (intensity < 0.0f) intensity = 0.0f;
+    if (intensity > 1.0f) intensity = 1.0f;
+
+    int r = (base >> 11) & 0x1F;
+    int g = (base >> 5) & 0x3F;
+    int b = base & 0x1F;
+    r = static_cast<int>(r * intensity + 0.5f);
+    g = static_cast<int>(g * intensity + 0.5f);
+    b = static_cast<int>(b * intensity + 0.5f);
+    return static_cast<uint16_t>((r << 11) | (g << 5) | b);
+}
 
 }  // namespace
 
-void WireRenderer::render(const Mesh& mesh, const Camera& camera,
-                          Canvas& canvas, const Rect& viewport) {
+void Renderer::project(const Mesh& mesh, const Camera& camera,
+                       const Rect& viewport) {
     const size_t vertex_count = mesh.vertices.size();
-    if (vertex_count == 0 || viewport.w <= 0 || viewport.h <= 0) return;
-
     screen_x_.resize(vertex_count);
     screen_y_.resize(vertex_count);
     depth_.resize(vertex_count);
@@ -44,13 +69,15 @@ void WireRenderer::render(const Mesh& mesh, const Camera& camera,
         screen_y_[i] = center_y - y1 * scale;
         depth_[i] = z2;
     }
+}
 
+void Renderer::renderWireframe(Canvas& canvas, const Rect& viewport) {
     const int min_x = viewport.x;
     const int min_y = viewport.y;
     const int max_x = viewport.x + viewport.w - 1;
     const int max_y = viewport.y + viewport.h - 1;
 
-    for (size_t i = 0; i + 2 < vertex_count; i += 3) {
+    for (size_t i = 0; i + 2 < screen_x_.size(); i += 3) {
         const float x0 = screen_x_[i];
         const float y0 = screen_y_[i];
         const float x1 = screen_x_[i + 1];
@@ -58,7 +85,6 @@ void WireRenderer::render(const Mesh& mesh, const Camera& camera,
         const float x2 = screen_x_[i + 2];
         const float y2 = screen_y_[i + 2];
 
-        // Cheap reject when the whole triangle is outside one screen edge.
         if ((x0 < min_x && x1 < min_x && x2 < min_x) ||
             (x0 > max_x && x1 > max_x && x2 > max_x) ||
             (y0 < min_y && y1 < min_y && y2 < min_y) ||
@@ -66,9 +92,11 @@ void WireRenderer::render(const Mesh& mesh, const Camera& camera,
             continue;
         }
 
-        float avg_depth = (depth_[i] + depth_[i + 1] + depth_[i + 2]) / 3.0f;
-        float t = (avg_depth + 1.0f) * 0.5f;
-        uint16_t color = lerp565(Theme::kWireFar, Theme::kWireNear, t);
+        const float avg_depth =
+            (depth_[i] + depth_[i + 1] + depth_[i + 2]) / 3.0f;
+        const float t = (avg_depth + 1.0f) * 0.5f;
+        const uint16_t color =
+            lerp565(Theme::kWireFar, Theme::kWireNear, t);
 
         const int ix0 = static_cast<int>(std::lround(x0));
         const int iy0 = static_cast<int>(std::lround(y0));
@@ -81,4 +109,103 @@ void WireRenderer::render(const Mesh& mesh, const Camera& camera,
         canvas.line(ix1, iy1, ix2, iy2, color);
         canvas.line(ix2, iy2, ix0, iy0, color);
     }
+}
+
+void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
+                           const Rect& viewport, float cp, float sp,
+                           float cy, float sy) {
+    const size_t pixel_count =
+        static_cast<size_t>(canvas.width()) * canvas.height();
+    zbuffer_.resize(pixel_count);
+    std::fill(zbuffer_.begin(), zbuffer_.end(), -1e30f);
+
+    uint16_t* pixels = canvas.data();
+    const int canvas_width = canvas.width();
+    const int min_x = viewport.x;
+    const int min_y = viewport.y;
+    const int max_x = viewport.x + viewport.w - 1;
+    const int max_y = viewport.y + viewport.h - 1;
+
+    for (size_t i = 0; i + 2 < screen_x_.size(); i += 3) {
+        const float x0 = screen_x_[i];
+        const float y0 = screen_y_[i];
+        const float x1 = screen_x_[i + 1];
+        const float y1 = screen_y_[i + 1];
+        const float x2 = screen_x_[i + 2];
+        const float y2 = screen_y_[i + 2];
+
+        // Screen y points down, so front-facing triangles have positive area.
+        const float area = edge(x0, y0, x1, y1, x2, y2);
+        if (area <= 0.0001f) continue;
+
+        if ((x0 < min_x && x1 < min_x && x2 < min_x) ||
+            (x0 > max_x && x1 > max_x && x2 > max_x) ||
+            (y0 < min_y && y1 < min_y && y2 < min_y) ||
+            (y0 > max_y && y1 > max_y && y2 > max_y)) {
+            continue;
+        }
+
+        const int bx0 = std::max(
+            min_x, static_cast<int>(std::floor(std::min({x0, x1, x2}))));
+        const int bx1 = std::min(
+            max_x, static_cast<int>(std::ceil(std::max({x0, x1, x2}))));
+        const int by0 = std::max(
+            min_y, static_cast<int>(std::floor(std::min({y0, y1, y2}))));
+        const int by1 = std::min(
+            max_y, static_cast<int>(std::ceil(std::max({y0, y1, y2}))));
+        if (bx1 < bx0 || by1 < by0) continue;
+
+        const Vec3& normal = mesh.normals[i / 3];
+        const float ny = normal.y * cp - normal.z * sp;
+        const float nz1 = normal.y * sp + normal.z * cp;
+        const float nx = normal.x * cy + nz1 * sy;
+        const float nz = -normal.x * sy + nz1 * cy;
+
+        const float diffuse =
+            std::fabs(nx * kLightX + ny * kLightY + nz * kLightZ);
+        const float intensity = kAmbient + kDiffuse * diffuse;
+        const uint16_t color = shade(kBaseColor, intensity);
+
+        const float inv_area = 1.0f / area;
+        for (int y = by0; y <= by1; ++y) {
+            const float py = static_cast<float>(y) + 0.5f;
+            for (int x = bx0; x <= bx1; ++x) {
+                const float px = static_cast<float>(x) + 0.5f;
+                const float w0 = edge(x1, y1, x2, y2, px, py);
+                if (w0 < 0.0f) continue;
+                const float w1 = edge(x2, y2, x0, y0, px, py);
+                if (w1 < 0.0f) continue;
+                const float w2 = edge(x0, y0, x1, y1, px, py);
+                if (w2 < 0.0f) continue;
+
+                const float z = (w0 * depth_[i] + w1 * depth_[i + 1] +
+                                 w2 * depth_[i + 2]) *
+                                inv_area;
+                const size_t index =
+                    static_cast<size_t>(y) * canvas_width + x;
+                if (z <= zbuffer_[index]) continue;
+                zbuffer_[index] = z;
+                pixels[index] = color;
+            }
+        }
+    }
+}
+
+void Renderer::render(const Mesh& mesh, const Camera& camera,
+                      Canvas& canvas, const Rect& viewport,
+                      RenderMode mode) {
+    if (mesh.vertices.empty() || viewport.w <= 0 || viewport.h <= 0) return;
+
+    project(mesh, camera, viewport);
+
+    if (mode == RenderMode::Wireframe) {
+        renderWireframe(canvas, viewport);
+        return;
+    }
+    if (mesh.normals.size() < mesh.triangleCount()) return;
+
+    const float yaw = camera.yaw_deg * kDegToRad;
+    const float pitch = camera.pitch_deg * kDegToRad;
+    renderSolid(mesh, canvas, viewport, std::cos(pitch), std::sin(pitch),
+                std::cos(yaw), std::sin(yaw));
 }

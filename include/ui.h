@@ -11,6 +11,7 @@ struct UiState {
     Camera camera;
     int fps = 0;
     bool auto_rotate = false;
+    bool wireframe = false;
     bool help = false;
     std::string toast;
 };

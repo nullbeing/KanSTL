@@ -77,11 +77,11 @@ void drawUi(Canvas& canvas, const UiState& state) {
     canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
     canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
 
-    char view[48];
-    std::snprintf(view, sizeof(view), "Y %+d  P %+d  Z %.2f%s",
+    char view[64];
+    std::snprintf(view, sizeof(view), "Y %+d  P %+d  Z %.2f  %s%s",
                   static_cast<int>(state.camera.yaw_deg),
                   static_cast<int>(state.camera.pitch_deg),
-                  state.camera.zoom,
+                  state.camera.zoom, state.wireframe ? "WIRE" : "SOLID",
                   state.auto_rotate ? "  AUTO" : "");
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
@@ -114,6 +114,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "+ / -     ZOOM",
         "R         RESET VIEW",
         "ENTER     FIT TO SCREEN",
+        "W         WIRE / SOLID",
         "A         AUTO ROTATE",
         "S         SCREENSHOT",
         "H         CLOSE HELP",

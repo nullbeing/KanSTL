@@ -119,6 +119,32 @@ bool loadAscii(const std::string& path, Mesh& mesh, std::string& error) {
     return true;
 }
 
+void computeNormals(Mesh& mesh) {
+    const size_t count = mesh.triangleCount();
+    mesh.normals.resize(count);
+    for (size_t i = 0; i < count; ++i) {
+        const Vec3& a = mesh.vertices[i * 3];
+        const Vec3& b = mesh.vertices[i * 3 + 1];
+        const Vec3& c = mesh.vertices[i * 3 + 2];
+        Vec3 ab{b.x - a.x, b.y - a.y, b.z - a.z};
+        Vec3 ac{c.x - a.x, c.y - a.y, c.z - a.z};
+        Vec3 n{ab.y * ac.z - ab.z * ac.y,
+               ab.z * ac.x - ab.x * ac.z,
+               ab.x * ac.y - ab.y * ac.x};
+        const float length =
+            std::sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+        if (length > 1e-12f) {
+            const float inv = 1.0f / length;
+            n.x *= inv;
+            n.y *= inv;
+            n.z *= inv;
+        } else {
+            n = {0.0f, 0.0f, 1.0f};
+        }
+        mesh.normals[i] = n;
+    }
+}
+
 void normalize(Mesh& mesh) {
     mesh.min = {1e30f, 1e30f, 1e30f};
     mesh.max = {-1e30f, -1e30f, -1e30f};
@@ -216,5 +242,6 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error) {
 
     fixWinding(mesh.vertices);
     normalize(mesh);
+    computeNormals(mesh);
     return true;
 }

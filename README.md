@@ -7,15 +7,16 @@ A small STL 3D viewer for the M5Stack Cardputer Zero (320x170 RGB565
 framebuffer). It loads binary or ASCII STL files and renders them with a
 software rasterizer, straight into `/dev/fb0`.
 
-**Status: M1 complete** - STL loading, wireframe rendering, rotate/zoom,
-screenshot and benchmark modes. Solid shading with a z-buffer is next (M2).
+**Status: M2 complete** - STL loading, solid shading with a z-buffer,
+backface culling, wireframe toggle, rotate/zoom, screenshots and benchmarks.
 
 ![STL Viewer](docs/images/icosphere.png)
 
 ## Features
 
 - Binary and ASCII STL loading, model centered and scaled automatically
-- Wireframe rendering with depth-based shading
+- Solid flat shading with a z-buffer and backface culling
+- Wireframe mode with depth-based shading (`W` toggles)
 - Arrow keys rotate, `+` / `-` zoom
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Offscreen PNG rendering for development without a device
@@ -56,8 +57,12 @@ cmake --build build-aarch64 -j$(nproc)
 # Start spinning automatically (useful for demos)
 ./stlviewer --auto model.stl
 
-# Benchmark the wireframe renderer (offscreen)
+# Start in wireframe mode
+./stlviewer --wireframe model.stl
+
+# Benchmark the renderer (offscreen), solid or wireframe
 ./stlviewer --bench 300 examples/icosphere.stl
+./stlviewer --bench 300 --wireframe examples/icosphere.stl
 ```
 
 If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the first
@@ -65,6 +70,23 @@ If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the first
 first `.stl` in `$HOME`.
 
 On the desktop, `--shot` and `--bench` need no framebuffer or keyboard.
+
+## Performance
+
+Measured on a Cardputer Zero (CM0) at 320x170 with a 12,000 triangle torus:
+
+```text
+solid      7.8 ms/frame   ~128 fps
+wireframe 12.6 ms/frame    ~79 fps
+interactive auto-rotate    ~60 fps (frame pacing)
+```
+
+The frame rate in the status bar is the rate frames actually reach the panel;
+idle time is excluded.
+
+Wireframe mode (`W`):
+
+![Wireframe](docs/images/wireframe.png)
 
 ## Controls
 
@@ -74,6 +96,7 @@ On the desktop, `--shot` and `--bench` need no framebuffer or keyboard.
 | `+` / `-` | Zoom in / out |
 | `R` | Reset view |
 | `Enter` | Fit to screen |
+| `W` | Toggle solid / wireframe |
 | `A` | Toggle auto-rotate |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |

@@ -16,6 +16,7 @@ struct Mesh {
     // After loading, the mesh is centered and normalized so that the
     // largest half-extent is 1.0.
     std::vector<Vec3> vertices;
+    std::vector<Vec3> normals;  // one unit face normal per triangle
     Vec3 min;
     Vec3 max;
     Vec3 center;

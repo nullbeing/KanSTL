@@ -89,6 +89,8 @@ Key translate(int code, bool shift) {
         case KEY_ENTER:
         case KEY_KPENTER:
             return Key::Fit;
+        case KEY_W:
+            return Key::Wire;
         case KEY_H:
         case KEY_HELP:
             return Key::Help;

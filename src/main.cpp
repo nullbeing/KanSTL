@@ -42,6 +42,7 @@ struct Options {
     int bench_frames = 0;
     bool no_ui = false;
     bool auto_start = false;
+    bool wireframe = false;
 };
 
 void printUsage(const char* argv0) {
@@ -59,6 +60,7 @@ void printUsage(const char* argv0) {
         "  --fb <device>       Framebuffer device (default /dev/fb0)\n"
         "  --kbd <device>      Keyboard event device (default autodetect)\n"
         "  --auto              Start with auto-rotate enabled\n"
+        "  --wireframe         Start in wireframe mode (default: solid)\n"
         "  --no-ui             Hide status and hint bars\n"
         "  -h, --help          Show this help\n"
         "\n"
@@ -122,6 +124,8 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
             options.kbd_device = argv[++i];
         } else if (arg == "--auto") {
             options.auto_start = true;
+        } else if (arg == "--wireframe") {
+            options.wireframe = true;
         } else if (arg == "--no-ui") {
             options.no_ui = true;
         } else if (!arg.empty() && arg[0] == '-') {
@@ -180,9 +184,10 @@ Rect activeViewport(const Canvas& canvas, bool no_ui) {
 }
 
 void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
-                 WireRenderer& renderer, const UiState& ui, bool no_ui) {
+                 Renderer& renderer, const UiState& ui, bool no_ui,
+                 RenderMode mode) {
     canvas.clear(Theme::kBackground);
-    renderer.render(mesh, camera, canvas, activeViewport(canvas, no_ui));
+    renderer.render(mesh, camera, canvas, activeViewport(canvas, no_ui), mode);
     if (!no_ui) drawUi(canvas, ui);
 }
 
@@ -239,7 +244,7 @@ int runInteractive(const Options& options, const Mesh& mesh) {
     }
 
     Canvas canvas(framebuffer.width(), framebuffer.height());
-    WireRenderer renderer;
+    Renderer renderer;
 
     Camera camera{options.yaw, options.pitch, options.zoom};
     const Camera home_camera = camera;
@@ -248,6 +253,7 @@ int runInteractive(const Options& options, const Mesh& mesh) {
     bool dirty = true;
     bool help = false;
     bool auto_rotate = options.auto_start;
+    bool wireframe = options.wireframe;
     int fps = 0;
     std::string toast;
     auto toast_until = std::chrono::steady_clock::now();
@@ -310,6 +316,9 @@ int runInteractive(const Options& options, const Mesh& mesh) {
                         dirty = true;
                     } else if (key == Key::Auto) {
                         auto_rotate = !auto_rotate;
+                        dirty = true;
+                    } else if (key == Key::Wire) {
+                        wireframe = !wireframe;
                         dirty = true;
                     } else if (key == Key::Help) {
                         help = !help;
@@ -374,11 +383,14 @@ int runInteractive(const Options& options, const Mesh& mesh) {
             ui.camera = camera;
             ui.fps = fps;
             ui.auto_rotate = auto_rotate;
+            ui.wireframe = wireframe;
             ui.help = help;
             ui.toast = toast;
 
             const auto render_start = std::chrono::steady_clock::now();
-            renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui);
+            renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
+                        wireframe ? RenderMode::Wireframe
+                                  : RenderMode::Solid);
             framebuffer.present(canvas);
             const auto render_end = std::chrono::steady_clock::now();
             const double render_seconds =
@@ -418,18 +430,21 @@ int runInteractive(const Options& options, const Mesh& mesh) {
 
 int runBenchmark(const Options& options, const Mesh& mesh) {
     Canvas canvas(kCanvasWidth, kCanvasHeight);
-    WireRenderer renderer;
+    Renderer renderer;
     Camera camera{options.yaw, options.pitch, options.zoom};
     UiState ui;
     ui.mesh = &mesh;
     ui.camera = camera;
+    ui.wireframe = options.wireframe;
+    const RenderMode mode =
+        options.wireframe ? RenderMode::Wireframe : RenderMode::Solid;
 
     const auto start = std::chrono::steady_clock::now();
     for (int frame = 0; frame < options.bench_frames; ++frame) {
         camera.yaw_deg += 1.5f;
         if (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
         ui.camera = camera;
-        renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui);
+        renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui, mode);
     }
     const double seconds =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
@@ -443,15 +458,17 @@ int runBenchmark(const Options& options, const Mesh& mesh) {
 
 int renderScreenshot(const Options& options, Mesh& mesh) {
     Canvas canvas(kCanvasWidth, kCanvasHeight);
-    WireRenderer renderer;
+    Renderer renderer;
     Camera camera{options.yaw, options.pitch, options.zoom};
 
     UiState ui;
     ui.mesh = &mesh;
     ui.camera = camera;
     ui.fps = 0;
+    ui.wireframe = options.wireframe;
 
-    renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui);
+    renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
+                options.wireframe ? RenderMode::Wireframe : RenderMode::Solid);
 
     if (!saveCanvasPng(canvas, options.shot_path)) {
         std::fprintf(stderr, "stlviewer: failed to write %s\n",

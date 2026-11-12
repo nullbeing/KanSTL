@@ -14,6 +14,7 @@ enum class Key {
     Reset,
     Auto,
     Fit,
+    Wire,
     Help,
     Shot,
     Esc,
