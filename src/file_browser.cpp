@@ -50,14 +50,7 @@ bool FileBrowser::init(const std::string& preferred_dir,
         if (!dir.empty() && !fs::is_directory(dir, ec)) dir.clear();
     }
 
-    if (dir.empty()) {
-        const fs::path models = fs::path(homeDir()) / "models";
-        if (fs::is_directory(models, ec)) {
-            dir = models.string();
-        } else {
-            dir = homeDir();
-        }
-    }
+    if (dir.empty()) dir = homeDir();
 
     const bool ok = setDirectory(dir, true);
     error = error_;

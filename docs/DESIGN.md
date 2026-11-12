@@ -143,7 +143,7 @@ The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
 
-The bottom bar has a small white pill button labeled `files`, centered at
+The bottom bar has a small light-blue pill button labeled `files`, centered at
 x=273 so it lines up with the physical `8` key. Both `8` and `B` open the file
 browser.
 

@@ -17,7 +17,7 @@ constexpr int kBrowserRows = 13;
 class FileBrowser {
 public:
     // Loads `preferred_dir` if valid, otherwise the last directory from
-    // `config_path`, otherwise ~/models, otherwise $HOME.
+    // `config_path`, otherwise $HOME.
     bool init(const std::string& preferred_dir, const std::string& config_path,
               std::string& error);
 
