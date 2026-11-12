@@ -84,12 +84,12 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int h = canvas.height();
 
     // Top status bar.
-    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
-    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBarBorder);
+    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kLightPanel);
+    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBorderOnLight);
 
     const std::string name =
         state.mesh ? truncate(state.mesh->name, 30) : std::string("(no model)");
-    canvas.text(kTextLeft, kTextTop, name, Theme::kTextBright);
+    canvas.text(kTextLeft, kTextTop, name, Theme::kTextOnLight);
 
     char info[32];
     if (state.fps > 0) {
@@ -102,12 +102,12 @@ void drawUi(Canvas& canvas, const UiState& state) {
                       triangleText(state.mesh ? state.mesh->triangleCount() : 0)
                           .c_str());
     }
-    drawTextRight(canvas, w - 4, kTextTop, info, Theme::kText);
+    drawTextRight(canvas, w - 4, kTextTop, info, Theme::kSubtleOnLight);
 
     // Bottom hint bar.
     const int hint_y = h - kHintHeight;
-    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
-    canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
+    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kLightPanel);
+    canvas.fillRect(0, hint_y, w, 1, Theme::kBorderOnLight);
 
     const bool custom_pivot =
         std::fabs(state.camera.pivot_x) > 1e-4f ||
@@ -121,9 +121,10 @@ void drawUi(Canvas& canvas, const UiState& state) {
                   state.camera.zoom, state.wireframe ? "WIRE" : "SOLID",
                   state.auto_rotate ? "  AUTO" : "",
                   custom_pivot ? "  CENTER" : "");
-    canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
+    canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kTextOnLight);
 
-    drawTextRight(canvas, w - 4, hint_y + kTextTop, "B FILES", Theme::kTextDim);
+    drawTextRight(canvas, w - 4, hint_y + kTextTop, "B FILES",
+                  Theme::kSubtleOnLight);
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
@@ -131,9 +132,9 @@ void drawUi(Canvas& canvas, const UiState& state) {
         const int box_w = canvas.textWidth(text) + 10;
         const int box_x = (w - box_w) / 2;
         const int box_y = hint_y - 16;
-        canvas.fillRect(box_x, box_y, box_w, 14, Theme::kBarBackground);
-        canvas.rect(box_x, box_y, box_w, 14, Theme::kAccent);
-        canvas.text(box_x + 5, box_y + 3, text, Theme::kTextBright);
+        canvas.fillRect(box_x, box_y, box_w, 14, Theme::kLightPanel);
+        canvas.rect(box_x, box_y, box_w, 14, Theme::kTextOnLight);
+        canvas.text(box_x + 5, box_y + 3, text, Theme::kTextOnLight);
     }
 
     if (!state.help) return;
@@ -143,9 +144,11 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int panel_h = 144;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
-    canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
-    canvas.rect(px, py, panel_w, panel_h, Theme::kOverlayBorder);
-    canvas.text(px + 8, py + 6, "STL VIEWER", Theme::kAccent);
+    canvas.fillRect(px, py, panel_w, panel_h, Theme::kLightPanel);
+    canvas.rect(px, py, panel_w, panel_h, Theme::kTextOnLight);
+    canvas.fillRect(px + 8, py + 16, panel_w - 16, 1,
+                    Theme::kBorderOnLight);
+    canvas.text(px + 8, py + 6, "STL VIEWER", Theme::kAccentOnLight);
 
     static const char* lines[] = {
         "ARROWS    ROTATE",
@@ -161,9 +164,9 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "H         CLOSE HELP",
         "HOLD ESC  3S TO EXIT",
     };
-    int y = py + 20;
+    int y = py + 22;
     for (const char* line : lines) {
-        canvas.text(px + 8, y, line, Theme::kText);
+        canvas.text(px + 8, y, line, Theme::kTextOnLight);
         y += 10;
     }
 }
@@ -175,8 +178,8 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     canvas.clear(Theme::kBackground);
 
     // Top bar: current directory and item count.
-    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
-    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBarBorder);
+    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kLightPanel);
+    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBorderOnLight);
 
     int item_count = static_cast<int>(entries.size());
     if (item_count > 0 && entries.front().name == "..") --item_count;
@@ -184,8 +187,9 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     std::snprintf(count_text, sizeof(count_text), "%d ITEMS", item_count);
 
     canvas.text(kTextLeft, kTextTop, displayPath(browser.directory()),
-                Theme::kTextBright);
-    drawTextRight(canvas, w - 4, kTextTop, count_text, Theme::kText);
+                Theme::kTextOnLight);
+    drawTextRight(canvas, w - 4, kTextTop, count_text,
+                  Theme::kSubtleOnLight);
 
     // Rows.
     const int list_top = kStatusHeight;
@@ -198,19 +202,23 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         const bool selected = index == browser.selection();
 
         if (selected) {
-            canvas.fillRect(0, y, w, kRowHeight, 0x2945);
-            canvas.text(3, y + 2, ">", Theme::kAccent);
+            canvas.fillRect(0, y, w, kRowHeight, Theme::kLightPanel);
+            canvas.text(3, y + 2, ">", Theme::kTextOnLight);
         }
 
         std::string name = entry.name;
         if (entry.is_directory && name != "..") name += "/";
 
-        canvas.text(12, y + 2, truncate(name, 39),
-                    entry.is_directory ? Theme::kAccent : Theme::kTextBright);
+        const uint16_t name_color =
+            selected ? Theme::kTextOnLight
+                     : (entry.is_directory ? Theme::kAccent
+                                           : Theme::kTextBright);
+        canvas.text(12, y + 2, truncate(name, 39), name_color);
 
         const std::string right =
             entry.is_directory ? std::string("DIR") : humanSize(entry.size);
-        drawTextRight(canvas, w - 4, y + 2, right, Theme::kTextDim);
+        drawTextRight(canvas, w - 4, y + 2, right,
+                      selected ? Theme::kSubtleOnLight : Theme::kTextDim);
     }
 
     bool has_files = false;
@@ -228,17 +236,17 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
 
     // Bottom bar: error message or key hints.
     const int hint_y = h - kHintHeight;
-    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
-    canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
+    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kLightPanel);
+    canvas.fillRect(0, hint_y, w, 1, Theme::kBorderOnLight);
 
     if (!browser.error().empty()) {
         canvas.text(kTextLeft, hint_y + kTextTop,
-                    truncate(browser.error(), 52), 0xF800);
+                    truncate(browser.error(), 52), Theme::kErrorOnLight);
     } else {
         canvas.text(kTextLeft, hint_y + kTextTop,
-                    "ENT OPEN  <- UP  R REFRESH", Theme::kText);
+                    "ENT OPEN  <- UP  R REFRESH", Theme::kTextOnLight);
         drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD 3S EXIT",
-                      Theme::kTextDim);
+                      Theme::kSubtleOnLight);
     }
 }
 
@@ -247,15 +255,24 @@ void drawLoading(Canvas& canvas, const std::string& filename) {
     const int h = canvas.height();
     canvas.clear(Theme::kBackground);
 
+    const int panel_w = 252;
+    const int panel_h = 46;
+    const int px = (w - panel_w) / 2;
+    const int py = (h - panel_h) / 2;
+    canvas.fillRect(px, py, panel_w, panel_h, Theme::kLightPanel);
+    canvas.rect(px, py, panel_w, panel_h, Theme::kTextOnLight);
+
     const std::string title = "LOADING";
-    canvas.text((w - canvas.textWidth(title)) / 2, h / 2 - 18, title,
-                Theme::kAccent);
-    const std::string name = truncate(filename, 44);
-    canvas.text((w - canvas.textWidth(name)) / 2, h / 2, name,
-                Theme::kTextBright);
+    canvas.text((w - canvas.textWidth(title)) / 2, py + 7, title,
+                Theme::kTextOnLight);
+
+    const std::string name = truncate(filename, 38);
+    canvas.text((w - canvas.textWidth(name)) / 2, py + 21, name,
+                Theme::kSubtleOnLight);
+
     const std::string wait = "PLEASE WAIT";
-    canvas.text((w - canvas.textWidth(wait)) / 2, h / 2 + 16, wait,
-                Theme::kTextDim);
+    canvas.text((w - canvas.textWidth(wait)) / 2, py + 33, wait,
+                Theme::kSubtleOnLight);
 }
 
 void drawAxisGizmo(Canvas& canvas, const Camera& camera,
@@ -294,21 +311,21 @@ void drawExitPrompt(Canvas& canvas, float progress) {
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
 
-    canvas.fillRect(px, py, panel_w, panel_h, Theme::kBarBackground);
-    canvas.rect(px, py, panel_w, panel_h, Theme::kTextDim);
+    canvas.fillRect(px, py, panel_w, panel_h, Theme::kLightPanel);
+    canvas.rect(px, py, panel_w, panel_h, Theme::kTextOnLight);
 
     const std::string title = "HOLD ESC 3S TO EXIT";
     canvas.text((w - canvas.textWidth(title)) / 2, py + 6, title,
-                Theme::kTextBright);
+                Theme::kTextOnLight);
 
     const int bar_x = px + 10;
     const int bar_y = py + 24;
     const int bar_w = panel_w - 20;
-    canvas.fillRect(bar_x, bar_y, bar_w, 3, Theme::kBarBorder);
+    canvas.fillRect(bar_x, bar_y, bar_w, 3, Theme::kBorderOnLight);
 
     progress = std::max(0.0f, std::min(1.0f, progress));
     const int fill = static_cast<int>(bar_w * progress);
     if (fill > 0) {
-        canvas.fillRect(bar_x, bar_y, fill, 3, Theme::kAccent);
+        canvas.fillRect(bar_x, bar_y, fill, 3, Theme::kAccentOnLight);
     }
 }

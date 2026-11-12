@@ -26,6 +26,7 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
   the model and overlays
 - `B` opens the file list; `Esc` is exit-only (hold 3 seconds)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
+- White status/help panels with black text for high-contrast readability
 - Offscreen PNG rendering for development without a device
 - Built-in benchmark mode
 - Runs as the normal `pi` user under APPLaunch
