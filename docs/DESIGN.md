@@ -1,5 +1,11 @@
 # stlviewer design notes
 
+## Implementation status
+
+- M1 complete: STL loader, wireframe renderer, keyboard rotation/zoom, pixel UI,
+  offscreen PNG rendering, benchmark mode
+- M2 next: solid shading with a z-buffer, backface culling, wireframe toggle
+
 ## Scope
 
 An interactive STL viewer for the M5Stack Cardputer Zero.

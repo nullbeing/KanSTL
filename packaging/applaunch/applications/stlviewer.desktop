@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=STL Viewer
+Exec=bin/run-stlviewer
+Terminal=false
+Icon=share/images/stlviewer.png
+Type=Application

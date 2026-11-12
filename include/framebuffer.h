@@ -1,0 +1,36 @@
+#ifndef STLVIEWER_FRAMEBUFFER_H
+#define STLVIEWER_FRAMEBUFFER_H
+
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
+#include "canvas.h"
+
+// Minimal Linux framebuffer output for the Cardputer Zero panel.
+class Framebuffer {
+public:
+    Framebuffer() = default;
+    ~Framebuffer();
+
+    bool open(const std::string& device, std::string& error);
+    void close();
+
+    bool isOpen() const { return fd_ >= 0; }
+    int width() const { return width_; }
+    int height() const { return height_; }
+
+    void present(const Canvas& canvas);
+    void keepDisplayOn();
+
+private:
+    int fd_ = -1;
+    uint8_t* memory_ = nullptr;
+    size_t memory_size_ = 0;
+    size_t stride_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+    int bits_per_pixel_ = 0;
+};
+
+#endif  // STLVIEWER_FRAMEBUFFER_H
