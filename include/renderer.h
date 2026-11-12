@@ -10,6 +10,7 @@
 struct Camera {
     float yaw_deg = -30.0f;
     float pitch_deg = 20.0f;
+    float roll_deg = 0.0f;
     float zoom = 1.0f;
     // Rotation center in normalized model space. (0,0,0) is the model center.
     float pivot_x = 0.0f;
@@ -42,7 +43,8 @@ private:
     void project(const Mesh& mesh, const Camera& camera, const Rect& viewport);
     void renderWireframe(Canvas& canvas, const Rect& viewport);
     void renderSolid(const Mesh& mesh, Canvas& canvas, const Rect& viewport,
-                     float cp, float sp, float cy, float sy, bool matcap);
+                     float cp, float sp, float cy, float sy, float cr,
+                     float sr, bool matcap);
     void renderFeatureEdges(const Mesh& mesh, const Camera& camera,
                             Canvas& canvas, const Rect& viewport, float cp,
                             float sp, float cy, float sy);
