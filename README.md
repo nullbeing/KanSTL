@@ -21,10 +21,11 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Solid flat shading with a z-buffer and backface culling
 - EDGES mode: solid faces with dark crease lines and a bright silhouette
 - MATCAP mode: metallic normal-map shading with a specular highlight
-- `7` cycles solid / edges / matcap; the bottom pill shows the current style
+- `7` cycles solid / edges / matcap / wireframe; the bottom pill shows the
+  current style
 - `6` cycles auto-rotate off / horizontal yaw (`auto h`) / continuous
   pitch tumble (`auto v`); the tab turns mint green when active
-- Wireframe mode with depth-based shading (`W` toggles)
+- Wireframe mode included in the `7` render-style cycle
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
 - Red/green/blue XYZ orientation gizmo in the top-right corner, drawn above
@@ -110,8 +111,8 @@ idle time is excluded.
 
 ## Render styles
 
-`7` cycles solid → edges → matcap, and the bottom pill shows the active style.
-`W` toggles pure wireframe.
+`7` cycles solid → edges → matcap → wireframe, and the bottom pill shows the
+active style.
 
 EDGES:
 
@@ -154,8 +155,7 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `Space` | Zoom out |
 | `R` | Reset view and center |
 | `0` | Fit to screen and recenter |
-| `7` | Cycle solid / edges / matcap |
-| `W` | Toggle pure wireframe |
+| `7` | Cycle solid / edges / matcap / wireframe |
 | `6` / `A` | Cycle auto-rotate off / horizontal / vertical |
 | `B` / `8` | Open the file list |
 | `S` | Save `/tmp/stlviewer_shot.png` |

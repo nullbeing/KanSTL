@@ -215,8 +215,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
                       : Theme::kPillActive);
 
     // Render style button aligned with the "7" key (x=217).
-    const std::string style_label =
-        state.wireframe ? "wire" : styleName(state.style);
+    const std::string style_label = styleName(state.style);
     drawLabelPill(canvas, 217, pill_y, pill_h, style_label,
                   Theme::kPillBackground);
 
@@ -265,8 +264,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"ALT+ARROWS", "MOVE CENTER", Theme::kAccent},
         {"ENTER/SPACE", "ZOOM IN / OUT", Theme::kAccent},
         {"R / 0", "RESET / FIT", Theme::kAccent},
-        {"7", "SOLID/EDGES/MATCAP", 0xFE60},
-        {"W", "WIREFRAME", 0xFE60},
+        {"7", "STYLE + WIREFRAME", 0xFE60},
         {"A / 6", "AUTO H / V", 0xFE60},
         {"B / 8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},

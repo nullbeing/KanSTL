@@ -95,8 +95,6 @@ Key translate(int code) {
             return Key::Auto;
         case KEY_7:
             return Key::Style;
-        case KEY_W:
-            return Key::Wire;
         case KEY_H:
         case KEY_HELP:
             return Key::Help;

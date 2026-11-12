@@ -19,7 +19,6 @@ struct UiState {
     int fps = 0;
     AutoRotateMode auto_mode = AutoRotateMode::Off;
     RenderMode style = RenderMode::Solid;
-    bool wireframe = false;
     bool help = false;
     std::string toast;
 };

@@ -5,7 +5,7 @@
 - M1 complete: STL loader, wireframe renderer, keyboard rotation/zoom, pixel UI,
   offscreen PNG rendering, benchmark mode
 - M2 complete: z-buffer solid rendering, flat shading, backface culling,
-  `W` wireframe toggle, solid mode is the default
+  wireframe mode, solid mode is the default
 - Device measurement (CM0, 12,000 triangles): solid 7.8 ms/frame (~128 fps),
   wireframe 12.6 ms/frame (~79 fps); interactive rendering is paced at ~60 fps
 - M3 complete: in-app file browser, remembered last directory, file sizes,
@@ -137,9 +137,8 @@ Enter        zoom in
 Space        zoom out
 R            reset view and center
 0            fit to screen and recenter
-7            cycle solid / edges / matcap
+7            cycle solid / edges / matcap / wireframe
 6 / A        cycle auto-rotate off / horizontal yaw / pitch tumble
-W            toggle pure wireframe
 B / 8        open the file list (8 is under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```

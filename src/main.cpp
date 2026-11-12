@@ -49,7 +49,6 @@ struct Options {
     int bench_frames = 0;
     bool no_ui = false;
     bool auto_start = false;
-    bool wireframe = false;
     RenderMode style = RenderMode::Solid;
     bool list_dir = false;
     std::string list_path;
@@ -150,7 +149,7 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
         } else if (arg == "--auto") {
             options.auto_start = true;
         } else if (arg == "--wireframe") {
-            options.wireframe = true;
+            options.style = RenderMode::Wireframe;
         } else if (arg == "--style" && i + 1 < argc) {
             const std::string value = argv[++i];
             if (value == "solid") {
@@ -159,6 +158,8 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
                 options.style = RenderMode::Edges;
             } else if (value == "matcap") {
                 options.style = RenderMode::Matcap;
+            } else if (value == "wire") {
+                options.style = RenderMode::Wireframe;
             } else {
                 error = "invalid --style value: " + value;
                 return false;
@@ -383,7 +384,6 @@ int runInteractive(const Options& options) {
     std::string current_path;
     AutoRotateMode auto_mode =
         options.auto_start ? AutoRotateMode::Horizontal : AutoRotateMode::Off;
-    bool wireframe = options.wireframe;
     RenderMode style = options.style;
 
     std::string initial = options.file;
@@ -509,17 +509,15 @@ int runInteractive(const Options& options) {
             }
             dirty = true;
         } else if (key == Key::Style) {
-            wireframe = false;
             if (style == RenderMode::Solid) {
                 style = RenderMode::Edges;
             } else if (style == RenderMode::Edges) {
                 style = RenderMode::Matcap;
+            } else if (style == RenderMode::Matcap) {
+                style = RenderMode::Wireframe;
             } else {
                 style = RenderMode::Solid;
             }
-            dirty = true;
-        } else if (key == Key::Wire) {
-            wireframe = !wireframe;
             dirty = true;
         } else if (key == Key::Files) {
             help = false;
@@ -730,12 +728,11 @@ int runInteractive(const Options& options) {
                 ui.fps = fps;
                 ui.auto_mode = auto_mode;
                 ui.style = style;
-                ui.wireframe = wireframe;
                 ui.help = help;
                 ui.toast = toast;
 
                 renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
-                            wireframe ? RenderMode::Wireframe : style);
+                            style);
                 if (exit_prompt_visible) drawExitPrompt(canvas, exit_progress);
                 if (!options.no_ui) {
                     drawAxisGizmo(canvas, camera,
@@ -787,9 +784,7 @@ int runBenchmark(const Options& options, const Mesh& mesh) {
     ui.mesh = &mesh;
     ui.camera = camera;
     ui.style = options.style;
-    ui.wireframe = options.wireframe;
-    const RenderMode mode =
-        options.wireframe ? RenderMode::Wireframe : options.style;
+    const RenderMode mode = options.style;
 
     const auto start = std::chrono::steady_clock::now();
     for (int frame = 0; frame < options.bench_frames; ++frame) {
@@ -822,10 +817,9 @@ int renderScreenshot(const Options& options, Mesh& mesh) {
     ui.camera = camera;
     ui.fps = 0;
     ui.style = options.style;
-    ui.wireframe = options.wireframe;
 
     renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
-                options.wireframe ? RenderMode::Wireframe : options.style);
+                options.style);
     if (!options.no_ui) {
         drawAxisGizmo(canvas, camera, activeViewport(canvas, options.no_ui));
     }
