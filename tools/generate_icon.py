@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the STL Viewer app icon: a faceted low-poly sphere."""
-
-import math
+"""Generate the STL Viewer app icon: a triangulated isometric cube."""
 
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -14,60 +12,6 @@ def lerp_color(a, b, t):
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
-def icosphere(subdivisions=1):
-    t = (1.0 + math.sqrt(5.0)) / 2.0
-    verts = [
-        (-1, t, 0), (1, t, 0), (-1, -t, 0), (1, -t, 0),
-        (0, -1, t), (0, 1, t), (0, -1, -t), (0, 1, -t),
-        (t, 0, -1), (t, 0, 1), (-t, 0, -1), (-t, 0, 1),
-    ]
-    faces = [
-        (0, 11, 5), (0, 5, 1), (0, 1, 7), (0, 7, 10), (0, 10, 11),
-        (1, 5, 9), (5, 11, 4), (11, 10, 2), (10, 7, 6), (7, 1, 8),
-        (3, 9, 4), (3, 4, 2), (3, 2, 6), (3, 6, 8), (3, 8, 9),
-        (4, 9, 5), (2, 4, 11), (6, 2, 10), (8, 6, 7), (9, 8, 1),
-    ]
-
-    def normalize(v):
-        length = math.sqrt(sum(c * c for c in v))
-        return tuple(c / length for c in v)
-
-    verts = [normalize(v) for v in verts]
-    for _ in range(subdivisions):
-        cache = {}
-        new_faces = []
-
-        def midpoint(i, j):
-            key = (min(i, j), max(i, j))
-            if key in cache:
-                return cache[key]
-            a, b = verts[i], verts[j]
-            m = normalize(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2,
-                           (a[2] + b[2]) / 2))
-            verts.append(m)
-            cache[key] = len(verts) - 1
-            return cache[key]
-
-        for a, b, c in faces:
-            ab = midpoint(a, b)
-            bc = midpoint(b, c)
-            ca = midpoint(c, a)
-            new_faces += [(a, ab, ca), (b, bc, ab), (c, ca, bc),
-                          (ab, bc, ca)]
-        faces = new_faces
-
-    return verts, faces
-
-
-def rotate(v, yaw, pitch):
-    x, y, z = v
-    cp, sp = math.cos(pitch), math.sin(pitch)
-    cy, sy = math.cos(yaw), math.sin(yaw)
-    y1 = y * cp - z * sp
-    z1 = y * sp + z * cp
-    return (x * cy + z1 * sy, y1, -x * sy + z1 * cy)
-
-
 def main():
     # Background gradient.
     img = Image.new("RGB", (S, S))
@@ -78,74 +22,73 @@ def main():
         draw.line([(0, y), (S, y)],
                   fill=lerp_color(top, bottom, y / (S - 1)))
 
-    # Cyan glow behind the model.
+    # Soft cyan glow behind the cube.
     glow = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     gd = ImageDraw.Draw(glow)
-    gd.ellipse([S // 2 - 360, S // 2 - 360, S // 2 + 360, S // 2 + 360],
-               fill=(20, 150, 190, 150))
+    gd.ellipse([120, 120, 900, 900], fill=(20, 150, 190, 95))
     glow = glow.filter(ImageFilter.GaussianBlur(150))
     img = Image.alpha_composite(img.convert("RGBA"), glow).convert("RGB")
     draw = ImageDraw.Draw(img)
 
     # Faint technical grid.
-    for i in range(0, S, 64):
-        color = (18, 30, 50)
+    for i in range(0, S, 128):
+        color = (17, 28, 47)
         draw.line([(i, 0), (i, S)], fill=color, width=2)
         draw.line([(0, i), (S, i)], fill=color, width=2)
 
-    # Projected low-poly sphere.
-    verts, faces = icosphere(1)
-    yaw = math.radians(-24)
-    pitch = math.radians(18)
-    radius = 320.0
-    cx, cy = S // 2, S // 2 + 10
+    # Isometric cube geometry.
+    cx, cy = 440, 560
+    half = 250
+    dx, dy = 150, -110
 
-    projected = []
-    for v in verts:
-        x, y, z = rotate(v, yaw, pitch)
-        projected.append((cx + x * radius, cy - y * radius, z))
+    f0 = (cx - half, cy - half)   # front top-left
+    f1 = (cx + half, cy - half)   # front top-right
+    f2 = (cx + half, cy + half)   # front bottom-right
+    f3 = (cx - half, cy + half)   # front bottom-left
+    b0 = (f0[0] + dx, f0[1] + dy)
+    b1 = (f1[0] + dx, f1[1] + dy)
+    b2 = (f2[0] + dx, f2[1] + dy)
 
-    light = (-0.35, 0.55, 0.75)
-    light_len = math.sqrt(sum(c * c for c in light))
-    light = tuple(c / light_len for c in light)
+    outer = (125, 240, 255)
+    inner = (72, 180, 212)
 
-    triangles = []
-    for face in faces:
-        a, b, c = (projected[i] for i in face)
-        ab = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
-        ac = (c[0] - a[0], c[1] - a[1], c[2] - a[2])
-        nx = ab[1] * ac[2] - ab[2] * ac[1]
-        ny = ab[2] * ac[0] - ab[0] * ac[2]
-        nz = ab[0] * ac[1] - ab[1] * ac[0]
-        length = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
-        n = (nx / length, ny / length, nz / length)
-        diffuse = max(0.0, n[0] * light[0] + n[1] * light[1] +
-                      n[2] * light[2])
-        rim = (1.0 - abs(n[2])) ** 2
-        shade = 0.16 + 0.80 * diffuse + 0.08 * rim
-        triangles.append(((a[2] + b[2] + c[2]) / 3.0, a, b, c, shade))
+    # Face fills: top, right, front (back faces are hidden).
+    top_tris = [
+        ((f0, b0, b1), (39, 132, 162)),
+        ((f0, b1, f1), (33, 116, 146)),
+    ]
+    right_tris = [
+        ((f1, b1, b2), (24, 92, 120)),
+        ((f1, b2, f2), (20, 80, 106)),
+    ]
+    front_tris = [
+        ((f0, f1, f2), (15, 64, 86)),
+        ((f0, f2, f3), (12, 56, 76)),
+    ]
 
-    # Painter's algorithm: far faces first.
-    triangles.sort(key=lambda item: item[0])
+    for triangles in (top_tris, right_tris, front_tris):
+        for points, color in triangles:
+            draw.polygon(points, fill=color)
 
-    dark = (12, 58, 78)
-    bright = (95, 200, 225)
-    edge = (125, 238, 252)
+    # Triangulation edges.
+    for triangles in (top_tris, right_tris, front_tris):
+        for points, _ in triangles:
+            draw.line(list(points) + [points[0]], fill=inner, width=6,
+                      joint="curve")
 
-    for _, a, b, c, shade in triangles:
-        color = lerp_color(dark, bright, shade)
-        points = [(a[0], a[1]), (b[0], b[1]), (c[0], c[1])]
-        draw.polygon(points, fill=color)
-        draw.line(points + [points[0]], fill=edge, width=4, joint="curve")
+    # Strong outer silhouette.
+    for quad in ((f0, b0, b1, f1), (f1, b1, b2, f2),
+                 (f0, f1, f2, f3)):
+        draw.line(list(quad) + [quad[0]], fill=outer, width=11,
+                  joint="curve")
 
-    # Small XYZ gizmo in the lower-right corner.
-    ox, oy = 820, 840
-    axis_len = 82
-    draw.line([(ox, oy), (ox + axis_len, oy)], fill=(255, 70, 70), width=11)
-    draw.line([(ox, oy), (ox, oy - axis_len)], fill=(70, 235, 120), width=11)
-    draw.line([(ox, oy), (ox - axis_len * 0.6, oy + axis_len * 0.55)],
-              fill=(90, 150, 255), width=11)
-    draw.ellipse([ox - 7, oy - 7, ox + 7, oy + 7], fill=(220, 235, 245))
+    # Small orange facet marker on the front face for a bit of contrast.
+    px = (cx - 55, cy + 90)
+    pz = (cx + 65, cy + 55)
+    py = (cx - 30, cy + 155)
+    draw.polygon([px, pz, py], fill=(232, 148, 52))
+    draw.line([px, pz, py, px], fill=(255, 196, 96), width=7,
+              joint="curve")
 
     img = img.resize((256, 256), Image.LANCZOS)
     img.save(OUT)
