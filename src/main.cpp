@@ -589,10 +589,12 @@ int runInteractive(const Options& options) {
                                 }
                                 for (HeldKey& state : held) state.active = false;
                             }
-                            dirty = true;
-                        } else if (browser.goParent()) {
-                            dirty = true;
+                        } else {
+                            browser.goParent();
                         }
+                        // Always repaint so the prompt disappears even when
+                        // the back action has nowhere to go (e.g. at "/").
+                        dirty = true;
                     } else if ((mode == AppMode::Viewer &&
                                 isViewerRepeatable(key)) ||
                                (mode == AppMode::Browser &&

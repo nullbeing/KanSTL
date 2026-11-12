@@ -260,32 +260,26 @@ void drawLoading(Canvas& canvas, const std::string& filename) {
 void drawExitPrompt(Canvas& canvas, float progress) {
     const int w = canvas.width();
     const int h = canvas.height();
-    const int panel_w = 230;
-    const int panel_h = 58;
+    const int panel_w = 214;
+    const int panel_h = 36;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
 
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kBarBackground);
-    canvas.rect(px, py, panel_w, panel_h, Theme::kAccent);
+    canvas.rect(px, py, panel_w, panel_h, Theme::kTextDim);
 
     const std::string title = "HOLD ESC 3S TO EXIT";
-    canvas.text((w - canvas.textWidth(title)) / 2, py + 8, title,
+    canvas.text((w - canvas.textWidth(title)) / 2, py + 6, title,
                 Theme::kTextBright);
 
-    const int bar_w = 200;
-    const int bar_h = 8;
-    const int bar_x = (w - bar_w) / 2;
-    const int bar_y = py + 26;
-    canvas.rect(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2,
-                Theme::kTextDim);
+    const int bar_x = px + 10;
+    const int bar_y = py + 24;
+    const int bar_w = panel_w - 20;
+    canvas.fillRect(bar_x, bar_y, bar_w, 3, Theme::kBarBorder);
 
     progress = std::max(0.0f, std::min(1.0f, progress));
     const int fill = static_cast<int>(bar_w * progress);
     if (fill > 0) {
-        canvas.fillRect(bar_x, bar_y, fill, bar_h, Theme::kAccent);
+        canvas.fillRect(bar_x, bar_y, fill, 3, Theme::kAccent);
     }
-
-    const std::string cancel = "RELEASE TO CANCEL";
-    canvas.text((w - canvas.textWidth(cancel)) / 2, py + 42, cancel,
-                Theme::kTextDim);
 }
