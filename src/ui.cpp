@@ -102,7 +102,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay.
     const int panel_w = 218;
-    const int panel_h = 120;
+    const int panel_h = 132;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
@@ -111,18 +111,20 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     static const char* lines[] = {
         "ARROWS    ROTATE",
-        "+ / -     ZOOM",
+        "ENTER     ZOOM IN",
+        "SPACE     ZOOM OUT",
+        "+ / -     ZOOM (ALT)",
         "R         RESET VIEW",
-        "ENTER     FIT TO SCREEN",
+        "0         FIT TO SCREEN",
         "W         WIRE / SOLID",
         "A         AUTO ROTATE",
         "S         SCREENSHOT",
         "H         CLOSE HELP",
         "ESC       HOLD TO EXIT",
     };
-    int y = py + 22;
+    int y = py + 20;
     for (const char* line : lines) {
         canvas.text(px + 8, y, line, Theme::kText);
-        y += 11;
+        y += 10;
     }
 }

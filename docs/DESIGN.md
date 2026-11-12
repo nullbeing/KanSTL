@@ -122,9 +122,11 @@ Planned optimizations, in order:
 ```text
 Left/Right   yaw
 Up/Down      pitch
-+ / -        zoom
+Enter        zoom in
+Space        zoom out
++ / -        zoom (alternate)
 R            reset view
-F            fit to screen
+0            fit to screen
 W            wireframe / solid
 A            auto-rotate
 Esc          back; long press exits

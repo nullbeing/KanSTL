@@ -65,8 +65,9 @@ void printUsage(const char* argv0) {
         "  -h, --help          Show this help\n"
         "\n"
         "Interactive keys:\n"
-        "  Arrows rotate, +/- zoom, R reset, Enter fit,\n"
-        "  A auto-rotate, S screenshot, H help, Esc (hold) exit.\n",
+        "  Arrows rotate, Enter/Space zoom (or +/-), R reset, 0 fit,\n"
+        "  W wire/solid, A auto-rotate, S screenshot, H help,\n"
+        "  Esc closes help; hold to exit.\n",
         argv0);
 }
 

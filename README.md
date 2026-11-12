@@ -17,7 +17,7 @@ backface culling, wireframe toggle, rotate/zoom, screenshots and benchmarks.
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
 - Wireframe mode with depth-based shading (`W` toggles)
-- Arrow keys rotate, `+` / `-` zoom
+- Arrow keys rotate, `Enter` / `Space` zoom (or `+` / `-`)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Offscreen PNG rendering for development without a device
 - Built-in benchmark mode
@@ -93,9 +93,11 @@ Wireframe mode (`W`):
 | Key | Action |
 | --- | --- |
 | Arrows | Rotate |
-| `+` / `-` | Zoom in / out |
+| `Enter` | Zoom in |
+| `Space` | Zoom out |
+| `+` / `-` | Zoom in / out (alternate) |
 | `R` | Reset view |
-| `Enter` | Fit to screen |
+| `0` | Fit to screen |
 | `W` | Toggle solid / wireframe |
 | `A` | Toggle auto-rotate |
 | `S` | Save `/tmp/stlviewer_shot.png` |

@@ -88,6 +88,10 @@ Key translate(int code, bool shift) {
             return Key::Auto;
         case KEY_ENTER:
         case KEY_KPENTER:
+            return Key::Plus;   // zoom in
+        case KEY_SPACE:
+            return Key::Minus;  // zoom out
+        case KEY_0:
             return Key::Fit;
         case KEY_W:
             return Key::Wire;
