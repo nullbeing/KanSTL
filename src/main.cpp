@@ -379,7 +379,6 @@ int runInteractive(const Options& options) {
     std::string current_path;
     AutoRotateMode auto_mode =
         options.auto_start ? AutoRotateMode::Horizontal : AutoRotateMode::Off;
-    float auto_pitch_direction = 1.0f;
     bool wireframe = options.wireframe;
     RenderMode style = options.style;
 
@@ -692,14 +691,10 @@ int runInteractive(const Options& options) {
                 camera.yaw_deg += 40.0f * step;
                 while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
             } else {
-                camera.pitch_deg += 20.0f * auto_pitch_direction * step;
-                if (camera.pitch_deg > 80.0f) {
-                    camera.pitch_deg = 80.0f;
-                    auto_pitch_direction = -1.0f;
-                } else if (camera.pitch_deg < -80.0f) {
-                    camera.pitch_deg = -80.0f;
-                    auto_pitch_direction = 1.0f;
-                }
+                // Continuous forward tumble around the pitch axis.
+                camera.pitch_deg += 45.0f * step;
+                while (camera.pitch_deg > 180.0f) camera.pitch_deg -= 360.0f;
+                while (camera.pitch_deg < -180.0f) camera.pitch_deg += 360.0f;
             }
             dirty = true;
         }
