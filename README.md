@@ -139,6 +139,10 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
 
+The help overlay groups keys by color:
+
+![Help overlay](docs/images/help.png)
+
 On the Cardputer Zero, `F` / `Z` / `X` / `C` are accepted as arrow keys as well.
 
 Holding `Esc` for 3 seconds exits; a progress prompt appears while holding:

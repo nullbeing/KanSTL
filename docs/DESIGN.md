@@ -147,9 +147,11 @@ The bottom bar has a small light-blue pill button labeled `files`, centered at
 x=273 so it lines up with the physical `8` key. Both `8` and `B` open the file
 browser.
 
-Status bar: file name, triangle count, fps, quality mode.
+Status bar: file name, triangle count, fps, quality mode. The help overlay is
+a rounded, shadowed panel; keys are color-coded by group (cyan for view
+movement, amber for display/file actions, red for exit).
 
-File browser:
+File browser (first start opens `$HOME`, then the last used directory):
 
 ```text
 Up/Down      select

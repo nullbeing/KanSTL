@@ -170,32 +170,47 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     if (!state.help) return;
 
-    // Help overlay.
+    // Help overlay: rounded elevated panel with a drop shadow.
     const int panel_w = 218;
-    const int panel_h = 144;
+    const int panel_h = 138;
+    const int radius = 8;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
-    canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
-    canvas.rect(px, py, panel_w, panel_h, Theme::kOverlayBorder);
-    canvas.text(px + 8, py + 6, "STL VIEWER", Theme::kAccent);
 
-    static const char* lines[] = {
-        "ARROWS    ROTATE",
-        "ALT+ARROWS MOVE CENTER",
-        "ENTER     ZOOM IN",
-        "SPACE     ZOOM OUT",
-        "R         RESET VIEW",
-        "0         FIT TO SCREEN",
-        "W         WIRE / SOLID",
-        "A         AUTO ROTATE",
-        "B / 8     OPEN FILE LIST",
-        "S         SCREENSHOT",
-        "H         CLOSE HELP",
-        "HOLD ESC  3S TO EXIT",
+    fillRoundRect(canvas, px + 4, py + 4, panel_w, panel_h, radius,
+                  Theme::kDialogShadow);
+    fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
+                  Theme::kDialogBorder);
+    fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
+                  radius - 1, Theme::kDialogBackground);
+
+    canvas.text(px + 10, py + 7, "STL VIEWER", Theme::kAccent);
+    drawTextRight(canvas, px + panel_w - 10, py + 7, "KEYS",
+                  Theme::kTextDim);
+    canvas.fillRect(px + 10, py + 20, panel_w - 20, 1, Theme::kBarBorder);
+
+    struct HelpLine {
+        const char* key;
+        const char* action;
+        uint16_t color;
     };
-    int y = py + 20;
-    for (const char* line : lines) {
-        canvas.text(px + 8, y, line, Theme::kText);
+    static const HelpLine lines[] = {
+        {"ARROWS", "ROTATE", Theme::kAccent},
+        {"ALT+ARROWS", "MOVE CENTER", Theme::kAccent},
+        {"ENTER/SPACE", "ZOOM IN / OUT", Theme::kAccent},
+        {"R / 0", "RESET / FIT", Theme::kAccent},
+        {"W", "WIRE / SOLID", 0xFE60},
+        {"A", "AUTO ROTATE", 0xFE60},
+        {"B / 8", "OPEN FILE LIST", 0xFE60},
+        {"S", "SCREENSHOT", 0xFE60},
+        {"H", "CLOSE HELP", Theme::kTextBright},
+        {"HOLD ESC", "EXIT", 0xF800},
+    };
+
+    int y = py + 27;
+    for (const HelpLine& line : lines) {
+        canvas.text(px + 10, y, line.key, line.color);
+        canvas.text(px + 88, y, line.action, Theme::kTextBright);
         y += 10;
     }
 }
