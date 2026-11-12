@@ -335,7 +335,11 @@ void applyCameraKey(Key key, Camera& camera) {
             return;
     }
 
-    camera.pitch_deg = std::max(-89.0f, std::min(89.0f, camera.pitch_deg));
+    // Do not clamp pitch: auto v can legitimately be past 90 degrees, and a
+    // clamp would snap the whole view on every arrow press. Wrap angles
+    // instead so manual input stays smooth.
+    while (camera.pitch_deg < -180.0f) camera.pitch_deg += 360.0f;
+    while (camera.pitch_deg > 180.0f) camera.pitch_deg -= 360.0f;
     while (camera.yaw_deg < -180.0f) camera.yaw_deg += 360.0f;
     while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
     camera.zoom = std::max(0.15f, std::min(12.0f, camera.zoom));
