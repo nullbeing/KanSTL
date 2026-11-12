@@ -4,6 +4,7 @@
 #include <string>
 
 #include "canvas.h"
+#include "file_browser.h"
 #include "renderer.h"
 
 struct UiState {
@@ -20,5 +21,7 @@ int statusBarHeight();
 int hintBarHeight();
 Rect viewportRect(int canvas_width, int canvas_height);
 void drawUi(Canvas& canvas, const UiState& state);
+void drawBrowser(Canvas& canvas, const FileBrowser& browser);
+void drawLoading(Canvas& canvas, const std::string& filename);
 
 #endif  // STLVIEWER_UI_H

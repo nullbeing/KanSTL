@@ -12,6 +12,7 @@ endif()
 add_executable(stlviewer
     src/main.cpp
     src/canvas.cpp
+    src/file_browser.cpp
     src/font.cpp
     src/framebuffer.cpp
     src/keyboard.cpp

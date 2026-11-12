@@ -8,7 +8,10 @@
   `W` wireframe toggle, solid mode is the default
 - Device measurement (CM0, 12,000 triangles): solid 7.8 ms/frame (~128 fps),
   wireframe 12.6 ms/frame (~79 fps); interactive rendering is paced at ~60 fps
-- M3 next: in-app file browser, remembered last directory, error/loading states
+- M3 complete: in-app file browser, remembered last directory, file sizes,
+  loading frame and load-error messages
+- M4 next: decimation for oversized models, optional matcap shading, quality
+  modes, and final AppStore packaging assets
 
 ## Scope
 
@@ -128,13 +131,24 @@ R            reset view
 0            fit to screen
 W            wireframe / solid
 A            auto-rotate
-Esc          back; long press exits
+Esc          back to the file browser; long press exits
 ```
 
 Status bar: file name, triangle count, fps, quality mode.
 
-File browser starts in `~/`, `/media/pi`, `/mnt`; lists `.stl` only and
-remembers the last directory.
+File browser:
+
+```text
+Up/Down      select
+PgUp/PgDn    page
+Enter        open folder or model
+Esc          parent folder; long press exits
+R            reload
+```
+
+It lists folders and `.stl` files only, shows file sizes, remembers the last
+directory and selection in `~/.config/stlviewer/last_dir`, and displays a
+loading frame plus load errors without leaving the browser.
 
 ## Packaging (later)
 
@@ -148,7 +162,7 @@ remembers the last directory.
 ```text
 M1  STL parser + wireframe + rotate/zoom
 M2  z-buffer solid rendering + flat shading + culling
-M3  status bar, help, file browser, reset/fit
-M4  quality modes, threading, decimation, matcap
-M5  device test, packaging, optional AppStore submission
+M3  file browser, remembered directory, loading/error states
+M4  quality modes, decimation, matcap, packaging assets
+M5  device test, AppStore submission
 ```

@@ -7,13 +7,15 @@ A small STL 3D viewer for the M5Stack Cardputer Zero (320x170 RGB565
 framebuffer). It loads binary or ASCII STL files and renders them with a
 software rasterizer, straight into `/dev/fb0`.
 
-**Status: M2 complete** - STL loading, solid shading with a z-buffer,
-backface culling, wireframe toggle, rotate/zoom, screenshots and benchmarks.
+**Status: M3 complete** - STL loading, solid shading with a z-buffer,
+wireframe toggle, rotate/zoom, and an in-app file browser.
 
 ![STL Viewer](docs/images/icosphere.png)
 
 ## Features
 
+- In-app file browser: browse folders, open `.stl` files, remembers the last
+  directory, shows file sizes and load errors
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
 - Wireframe mode with depth-based shading (`W` toggles)
@@ -44,8 +46,14 @@ cmake --build build-aarch64 -j$(nproc)
 ## Usage
 
 ```bash
-# Interactive (on the device)
+# Interactive file browser (default when no model is given)
+./stlviewer
+
+# Open one model directly
 ./stlviewer model.stl
+
+# Print a directory listing without a framebuffer/keyboard
+./stlviewer --list ~/models
 
 # Render one frame to a PNG (works on a desktop)
 ./stlviewer --shot out.png examples/icosphere.stl
@@ -65,11 +73,12 @@ cmake --build build-aarch64 -j$(nproc)
 ./stlviewer --bench 300 --wireframe examples/icosphere.stl
 ```
 
-If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the most
-recently modified `.stl` in the current directory, `~/models`, or `$HOME`.
-Uploading a newer model is enough to make it the default.
+With no model path the app starts in the file browser at the last used
+directory, or `~/models` on first start. `--auto` without a path opens the most
+recently modified `.stl` from the usual locations.
 
-On the desktop, `--shot` and `--bench` need no framebuffer or keyboard.
+On the desktop, `--shot`, `--bench` and `--list` need no framebuffer or
+keyboard.
 
 ## Performance
 
@@ -88,7 +97,23 @@ Wireframe mode (`W`):
 
 ![Wireframe](docs/images/wireframe.png)
 
-## Controls
+## File browser
+
+![File browser](docs/images/browser.png)
+
+| Key | Action |
+| --- | --- |
+| Up / Down | Select |
+| PgUp / PgDn | Page |
+| `Enter` | Open folder / model |
+| `Esc` | Parent folder |
+| `R` | Refresh |
+| `Esc` (hold) | Exit |
+
+Only folders and `.stl` files are listed. The last directory and file selection
+are remembered in `~/.config/stlviewer/last_dir`.
+
+## Viewer controls
 
 | Key | Action |
 | --- | --- |
@@ -101,7 +126,7 @@ Wireframe mode (`W`):
 | `A` | Toggle auto-rotate |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |
-| `Esc` | Close help; hold to exit |
+| `Esc` | Back to browser; close help; hold to exit |
 
 On the Cardputer Zero, `F` / `Z` / `X` / `C` are accepted as arrow keys as well.
 

@@ -12,9 +12,11 @@
 #include <cstring>
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "canvas.h"
+#include "file_browser.h"
 #include "framebuffer.h"
 #include "keyboard.h"
 #include "png.h"
@@ -31,6 +33,11 @@ volatile sig_atomic_t g_running = 1;
 
 void onSignal(int) { g_running = 0; }
 
+enum class AppMode {
+    Browser,
+    Viewer,
+};
+
 struct Options {
     std::string file;
     std::string fb_device;
@@ -43,6 +50,8 @@ struct Options {
     bool no_ui = false;
     bool auto_start = false;
     bool wireframe = false;
+    bool list_dir = false;
+    std::string list_path;
 };
 
 void printUsage(const char* argv0) {
@@ -57,6 +66,7 @@ void printUsage(const char* argv0) {
         "  --pitch <deg>       Initial pitch (default 20)\n"
         "  --zoom <factor>     Initial zoom (default 1.0)\n"
         "  --bench [frames]    Render frames offscreen and report speed\n"
+        "  --list [dir]        Print the file browser contents and exit\n"
         "  --fb <device>       Framebuffer device (default /dev/fb0)\n"
         "  --kbd <device>      Keyboard event device (default autodetect)\n"
         "  --auto              Start with auto-rotate enabled\n"
@@ -64,10 +74,16 @@ void printUsage(const char* argv0) {
         "  --no-ui             Hide status and hint bars\n"
         "  -h, --help          Show this help\n"
         "\n"
-        "Interactive keys:\n"
+        "Without a model path the app opens the file browser.\n"
+        "\n"
+        "Viewer keys:\n"
         "  Arrows rotate, Enter/Space zoom, R reset, 0 fit,\n"
         "  W wire/solid, A auto-rotate, S screenshot, H help,\n"
-        "  Esc closes help; hold to exit.\n",
+        "  Esc returns to the file browser; hold Esc to exit.\n"
+        "\n"
+        "Browser keys:\n"
+        "  Up/Down select, PgUp/PgDn page, Enter open, Esc parent,\n"
+        "  R refresh; hold Esc to exit.\n",
         argv0);
 }
 
@@ -119,6 +135,11 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
                 options.bench_frames = frames;
                 ++i;
             }
+        } else if (arg == "--list") {
+            options.list_dir = true;
+            if (i + 1 < argc && argv[i + 1][0] != '-') {
+                options.list_path = argv[++i];
+            }
         } else if (arg == "--fb" && i + 1 < argc) {
             options.fb_device = argv[++i];
         } else if (arg == "--kbd" && i + 1 < argc) {
@@ -140,6 +161,16 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
         }
     }
     return true;
+}
+
+std::string configPath() {
+    const char* xdg = std::getenv("XDG_CONFIG_HOME");
+    if (xdg != nullptr && *xdg != '\0') {
+        return std::string(xdg) + "/stlviewer/last_dir";
+    }
+    const char* home = std::getenv("HOME");
+    return std::string(home && *home ? home : "/home/pi") +
+           "/.config/stlviewer/last_dir";
 }
 
 std::string scanForStl(const std::filesystem::path& dir) {
@@ -202,7 +233,7 @@ void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
     if (!no_ui) drawUi(canvas, ui);
 }
 
-void applyRotationKey(Key key, Camera& camera) {
+void applyCameraKey(Key key, Camera& camera) {
     switch (key) {
         case Key::Up:
             camera.pitch_deg += 5.0f;
@@ -216,10 +247,10 @@ void applyRotationKey(Key key, Camera& camera) {
         case Key::Right:
             camera.yaw_deg += 5.0f;
             break;
-        case Key::Plus:
+        case Key::Enter:
             camera.zoom *= 1.10f;
             break;
-        case Key::Minus:
+        case Key::Space:
             camera.zoom /= 1.10f;
             break;
         default:
@@ -232,14 +263,19 @@ void applyRotationKey(Key key, Camera& camera) {
     camera.zoom = std::max(0.15f, std::min(12.0f, camera.zoom));
 }
 
-bool isRepeatable(Key key) {
+bool isViewerRepeatable(Key key) {
     return key == Key::Up || key == Key::Down || key == Key::Left ||
-           key == Key::Right || key == Key::Plus || key == Key::Minus;
+           key == Key::Right || key == Key::Enter || key == Key::Space;
+}
+
+bool isBrowserRepeatable(Key key) {
+    return key == Key::Up || key == Key::Down || key == Key::PageUp ||
+           key == Key::PageDown;
 }
 
 size_t keyIndex(Key key) { return static_cast<size_t>(key); }
 
-int runInteractive(const Options& options, const Mesh& mesh) {
+int runInteractive(const Options& options) {
     Framebuffer framebuffer;
     std::string error;
     if (!framebuffer.open(options.fb_device, error)) {
@@ -260,11 +296,53 @@ int runInteractive(const Options& options, const Mesh& mesh) {
     Camera camera{options.yaw, options.pitch, options.zoom};
     const Camera home_camera = camera;
 
+    Mesh mesh;
+    bool have_model = false;
+    std::string current_path;
+    bool auto_rotate = options.auto_start;
+    bool wireframe = options.wireframe;
+
+    std::string initial = options.file;
+    if (initial.empty() && options.auto_start) initial = findDefaultModel();
+    if (!initial.empty()) {
+        std::error_code path_error;
+        const std::string absolute =
+            std::filesystem::absolute(initial, path_error).string();
+        if (!path_error) initial = absolute;
+    }
+
+    std::string startup_error;
+    if (!initial.empty()) {
+        std::string load_error;
+        if (loadStl(initial, mesh, load_error)) {
+            have_model = true;
+            current_path = initial;
+            std::fprintf(stderr, "model: %s, %zu triangles\n",
+                         mesh.name.c_str(), mesh.triangleCount());
+        } else {
+            startup_error = "LOAD FAILED: " + load_error;
+        }
+    }
+
+    FileBrowser browser;
+    std::string browser_error;
+    std::string start_dir;
+    if (!initial.empty()) {
+        start_dir = std::filesystem::path(initial).parent_path().string();
+    }
+    browser.init(start_dir, configPath(), browser_error);
+    if (!startup_error.empty()) {
+        browser.setError(startup_error);
+    } else if (!browser_error.empty() && browser.entries().empty()) {
+        browser.setError(browser_error);
+    }
+    if (!current_path.empty()) browser.selectPath(current_path);
+
+    AppMode mode = have_model ? AppMode::Viewer : AppMode::Browser;
+
     bool running = true;
     bool dirty = true;
     bool help = false;
-    bool auto_rotate = options.auto_start;
-    bool wireframe = options.wireframe;
     int fps = 0;
     std::string toast;
     auto toast_until = std::chrono::steady_clock::now();
@@ -294,12 +372,102 @@ int runInteractive(const Options& options, const Mesh& mesh) {
         dirty = true;
     };
 
+    auto openModel = [&](const std::string& path) {
+        drawLoading(canvas, std::filesystem::path(path).filename().string());
+        framebuffer.present(canvas);
+
+        Mesh loaded;
+        std::string load_error;
+        if (!loadStl(path, loaded, load_error)) {
+            browser.setError("LOAD FAILED: " + load_error);
+            dirty = true;
+            return false;
+        }
+
+        mesh = std::move(loaded);
+        have_model = true;
+        current_path = path;
+        camera = home_camera;
+        fps = 0;
+        help = false;
+        toast.clear();
+        mode = AppMode::Viewer;
+        for (HeldKey& state : held) state.active = false;
+        dirty = true;
+        std::fprintf(stderr, "model: %s, %zu triangles\n", mesh.name.c_str(),
+                     mesh.triangleCount());
+        browser.selectPath(path);
+        return true;
+    };
+
+    auto handleViewerPress = [&](Key key) {
+        if (key == Key::Reset) {
+            camera = home_camera;
+            dirty = true;
+        } else if (key == Key::Fit) {
+            camera.zoom = 1.0f;
+            dirty = true;
+        } else if (key == Key::Auto) {
+            auto_rotate = !auto_rotate;
+            dirty = true;
+        } else if (key == Key::Wire) {
+            wireframe = !wireframe;
+            dirty = true;
+        } else if (key == Key::Help) {
+            help = !help;
+            dirty = true;
+        } else if (key == Key::Shot) {
+            saveScreenshot();
+        } else if (isViewerRepeatable(key)) {
+            applyCameraKey(key, camera);
+            held[keyIndex(key)].active = true;
+            held[keyIndex(key)].next_repeat =
+                std::chrono::steady_clock::now() +
+                std::chrono::milliseconds(300);
+            dirty = true;
+        }
+    };
+
+    auto handleBrowserPress = [&](Key key) {
+        if (key == Key::Up) {
+            browser.moveSelection(-1);
+            held[keyIndex(key)].active = true;
+            held[keyIndex(key)].next_repeat =
+                std::chrono::steady_clock::now() +
+                std::chrono::milliseconds(350);
+            dirty = true;
+        } else if (key == Key::Down) {
+            browser.moveSelection(1);
+            held[keyIndex(key)].active = true;
+            held[keyIndex(key)].next_repeat =
+                std::chrono::steady_clock::now() +
+                std::chrono::milliseconds(350);
+            dirty = true;
+        } else if (key == Key::PageUp) {
+            browser.pageSelection(-1);
+            dirty = true;
+        } else if (key == Key::PageDown) {
+            browser.pageSelection(1);
+            dirty = true;
+        } else if (key == Key::Enter) {
+            std::string chosen;
+            if (browser.activateSelected(chosen)) {
+                openModel(chosen);
+            } else {
+                dirty = true;
+            }
+        } else if (key == Key::Reset) {
+            browser.reload();
+            dirty = true;
+        }
+    };
+
     while (running && g_running) {
         // Pace continuous rendering at roughly 60 fps, but keep polling
         // often enough for responsive key handling.
         auto loop_now = std::chrono::steady_clock::now();
         int timeout_ms = 16;
-        if (dirty || auto_rotate) {
+        if (dirty || (mode == AppMode::Viewer && auto_rotate)) {
             const double since_present =
                 std::chrono::duration<double>(loop_now - last_present).count() *
                 1000.0;
@@ -319,33 +487,12 @@ int runInteractive(const Options& options, const Mesh& mesh) {
             bool pressed;
             while (keyboard.readEvent(key, pressed)) {
                 if (pressed) {
-                    if (key == Key::Reset) {
-                        camera = home_camera;
-                        dirty = true;
-                    } else if (key == Key::Fit) {
-                        camera.zoom = 1.0f;
-                        dirty = true;
-                    } else if (key == Key::Auto) {
-                        auto_rotate = !auto_rotate;
-                        dirty = true;
-                    } else if (key == Key::Wire) {
-                        wireframe = !wireframe;
-                        dirty = true;
-                    } else if (key == Key::Help) {
-                        help = !help;
-                        dirty = true;
-                    } else if (key == Key::Shot) {
-                        saveScreenshot();
-                    } else if (key == Key::Esc) {
+                    if (key == Key::Esc) {
                         esc_pressed = std::chrono::steady_clock::now();
-                    } else if (isRepeatable(key)) {
-                        applyRotationKey(key, camera);
-                        HeldKey& state = held[keyIndex(key)];
-                        state.active = true;
-                        state.next_repeat =
-                            std::chrono::steady_clock::now() +
-                            std::chrono::milliseconds(300);
-                        dirty = true;
+                    } else if (mode == AppMode::Viewer) {
+                        handleViewerPress(key);
+                    } else {
+                        handleBrowserPress(key);
                     }
                 } else {
                     if (key == Key::Esc) {
@@ -353,11 +500,25 @@ int runInteractive(const Options& options, const Mesh& mesh) {
                             std::chrono::steady_clock::now() - esc_pressed;
                         if (duration >= std::chrono::milliseconds(600)) {
                             running = false;
-                        } else if (help) {
-                            help = false;
+                        } else if (mode == AppMode::Viewer) {
+                            if (help) {
+                                help = false;
+                            } else {
+                                mode = AppMode::Browser;
+                                browser.reload();
+                                if (!current_path.empty()) {
+                                    browser.selectPath(current_path);
+                                }
+                                for (HeldKey& state : held) state.active = false;
+                            }
+                            dirty = true;
+                        } else if (browser.goParent()) {
                             dirty = true;
                         }
-                    } else if (isRepeatable(key)) {
+                    } else if ((mode == AppMode::Viewer &&
+                                isViewerRepeatable(key)) ||
+                               (mode == AppMode::Browser &&
+                                isBrowserRepeatable(key))) {
                         held[keyIndex(key)].active = false;
                     }
                 }
@@ -372,12 +533,23 @@ int runInteractive(const Options& options, const Mesh& mesh) {
         for (size_t i = 0; i < held.size(); ++i) {
             if (!held[i].active) continue;
             if (now < held[i].next_repeat) continue;
-            applyRotationKey(static_cast<Key>(i), camera);
-            held[i].next_repeat = now + std::chrono::milliseconds(20);
+
+            const Key key = static_cast<Key>(i);
+            if (mode == AppMode::Viewer) {
+                applyCameraKey(key, camera);
+                held[i].next_repeat = now + std::chrono::milliseconds(20);
+            } else {
+                if (key == Key::Up) {
+                    browser.moveSelection(-1);
+                } else if (key == Key::Down) {
+                    browser.moveSelection(1);
+                }
+                held[i].next_repeat = now + std::chrono::milliseconds(70);
+            }
             dirty = true;
         }
 
-        if (auto_rotate) {
+        if (mode == AppMode::Viewer && auto_rotate) {
             camera.yaw_deg += 40.0f * static_cast<float>(std::min(dt, 0.1));
             while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
             dirty = true;
@@ -389,41 +561,47 @@ int runInteractive(const Options& options, const Mesh& mesh) {
         }
 
         if (dirty) {
-            UiState ui;
-            ui.mesh = &mesh;
-            ui.camera = camera;
-            ui.fps = fps;
-            ui.auto_rotate = auto_rotate;
-            ui.wireframe = wireframe;
-            ui.help = help;
-            ui.toast = toast;
-
             const auto render_start = std::chrono::steady_clock::now();
-            renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
-                        wireframe ? RenderMode::Wireframe
-                                  : RenderMode::Solid);
-            framebuffer.present(canvas);
-            const auto render_end = std::chrono::steady_clock::now();
-            const double render_seconds =
-                std::chrono::duration<double>(render_end - render_start)
-                    .count();
-            last_render_seconds =
-                last_render_seconds <= 0.0
-                    ? render_seconds
-                    : last_render_seconds * 0.7 + render_seconds * 0.3;
+            if (mode == AppMode::Browser) {
+                drawBrowser(canvas, browser);
+                framebuffer.present(canvas);
+                last_render_seconds = 0.0;
+            } else if (have_model) {
+                UiState ui;
+                ui.mesh = &mesh;
+                ui.camera = camera;
+                ui.fps = fps;
+                ui.auto_rotate = auto_rotate;
+                ui.wireframe = wireframe;
+                ui.help = help;
+                ui.toast = toast;
 
-            // Report the rate frames actually reach the panel. Idle gaps are
-            // ignored so a paused viewer keeps its last active rate.
-            const auto present_now = render_end;
-            const double interval =
-                std::chrono::duration<double>(present_now - last_present)
-                    .count();
-            if (interval > 0.0001 && interval < 0.25) {
-                const int sample =
-                    static_cast<int>(std::lround(1.0 / interval));
-                fps = fps == 0 ? sample : (fps * 3 + sample) / 4;
+                renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
+                            wireframe ? RenderMode::Wireframe
+                                      : RenderMode::Solid);
+                framebuffer.present(canvas);
+
+                const auto render_end = std::chrono::steady_clock::now();
+                const double render_seconds =
+                    std::chrono::duration<double>(render_end - render_start)
+                        .count();
+                last_render_seconds =
+                    last_render_seconds <= 0.0
+                        ? render_seconds
+                        : last_render_seconds * 0.7 + render_seconds * 0.3;
+
+                // Report the rate frames actually reach the panel. Idle gaps
+                // are ignored so a paused viewer keeps its last active rate.
+                const double interval =
+                    std::chrono::duration<double>(render_end - last_present)
+                        .count();
+                if (interval > 0.0001 && interval < 0.25) {
+                    const int sample =
+                        static_cast<int>(std::lround(1.0 / interval));
+                    fps = fps == 0 ? sample : (fps * 3 + sample) / 4;
+                }
             }
-            last_present = present_now;
+            last_present = std::chrono::steady_clock::now();
             dirty = false;
         }
 
@@ -491,6 +669,28 @@ int renderScreenshot(const Options& options, Mesh& mesh) {
     return 0;
 }
 
+int listDirectory(const Options& options) {
+    FileBrowser browser;
+    std::string error;
+    browser.init(options.list_path, configPath(), error);
+
+    std::printf("%s\n", browser.directory().c_str());
+    for (const FileEntry& entry : browser.entries()) {
+        if (entry.is_directory) {
+            std::printf("  DIR       %s\n", entry.name.c_str());
+        } else {
+            std::printf("  %8llu  %s\n",
+                        static_cast<unsigned long long>(entry.size),
+                        entry.name.c_str());
+        }
+    }
+    if (!browser.error().empty()) {
+        std::fprintf(stderr, "%s\n", browser.error().c_str());
+        return 1;
+    }
+    return 0;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -502,34 +702,33 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (options.file.empty()) options.file = findDefaultModel();
-    if (options.file.empty()) {
-        std::fprintf(stderr,
-                     "stlviewer: no STL file given and none found in the "
-                     "current directory or $HOME\n\n");
-        printUsage(argv[0]);
-        return 1;
+    if (options.list_dir) {
+        return listDirectory(options);
     }
 
-    Mesh mesh;
-    if (!loadStl(options.file, mesh, error)) {
-        std::fprintf(stderr, "stlviewer: %s: %s\n", options.file.c_str(),
-                     error.c_str());
-        return 1;
-    }
-    std::fprintf(stderr, "model: %s, %zu triangles\n", mesh.name.c_str(),
-                 mesh.triangleCount());
-
-    if (options.bench_frames > 0) {
-        return runBenchmark(options, mesh);
-    }
-
-    if (!options.shot_path.empty()) {
+    const bool needs_model =
+        !options.shot_path.empty() || options.bench_frames > 0;
+    if (needs_model) {
+        std::string path = options.file;
+        if (path.empty()) path = findDefaultModel();
+        if (path.empty()) {
+            std::fprintf(stderr,
+                         "stlviewer: no STL file given and none found\n");
+            return 1;
+        }
+        Mesh mesh;
+        if (!loadStl(path, mesh, error)) {
+            std::fprintf(stderr, "stlviewer: %s: %s\n", path.c_str(),
+                         error.c_str());
+            return 1;
+        }
+        std::fprintf(stderr, "model: %s, %zu triangles\n", mesh.name.c_str(),
+                     mesh.triangleCount());
+        if (options.bench_frames > 0) return runBenchmark(options, mesh);
         return renderScreenshot(options, mesh);
     }
 
     signal(SIGINT, onSignal);
     signal(SIGTERM, onSignal);
-
-    return runInteractive(options, mesh);
+    return runInteractive(options);
 }

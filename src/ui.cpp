@@ -1,7 +1,9 @@
 #include "ui.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 namespace {
 
@@ -9,6 +11,7 @@ constexpr int kStatusHeight = 12;
 constexpr int kHintHeight = 12;
 constexpr int kTextLeft = 4;
 constexpr int kTextTop = 2;
+constexpr int kRowHeight = 11;
 
 std::string truncate(const std::string& value, size_t max_chars) {
     if (value.size() <= max_chars) return value;
@@ -31,6 +34,34 @@ std::string triangleText(size_t count) {
 void drawTextRight(Canvas& canvas, int right_x, int y, const std::string& text,
                    uint16_t color) {
     canvas.text(right_x - canvas.textWidth(text), y, text, color);
+}
+
+std::string humanSize(uint64_t bytes) {
+    char buf[24];
+    if (bytes >= 1024ULL * 1024ULL) {
+        std::snprintf(buf, sizeof(buf), "%.1fM", bytes / (1024.0 * 1024.0));
+    } else if (bytes >= 1024ULL) {
+        std::snprintf(buf, sizeof(buf), "%.1fK", bytes / 1024.0);
+    } else {
+        std::snprintf(buf, sizeof(buf), "%llu",
+                      static_cast<unsigned long long>(bytes));
+    }
+    return buf;
+}
+
+std::string displayPath(const std::string& path) {
+    std::string shown = path;
+    const char* home = std::getenv("HOME");
+    if (home != nullptr && *home != '\0') {
+        const size_t home_len = std::strlen(home);
+        if (shown.compare(0, home_len, home) == 0) {
+            shown = "~" + shown.substr(home_len);
+        }
+    }
+    if (shown.size() > 42) {
+        shown = "..." + shown.substr(shown.size() - 39);
+    }
+    return shown;
 }
 
 }  // namespace
@@ -126,4 +157,94 @@ void drawUi(Canvas& canvas, const UiState& state) {
         canvas.text(px + 8, y, line, Theme::kText);
         y += 10;
     }
+}
+
+void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
+    const int w = canvas.width();
+    const int h = canvas.height();
+    const auto& entries = browser.entries();
+    canvas.clear(Theme::kBackground);
+
+    // Top bar: current directory and item count.
+    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
+    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBarBorder);
+
+    int item_count = static_cast<int>(entries.size());
+    if (item_count > 0 && entries.front().name == "..") --item_count;
+    char count_text[24];
+    std::snprintf(count_text, sizeof(count_text), "%d ITEMS", item_count);
+
+    canvas.text(kTextLeft, kTextTop, displayPath(browser.directory()),
+                Theme::kTextBright);
+    drawTextRight(canvas, w - 4, kTextTop, count_text, Theme::kText);
+
+    // Rows.
+    const int list_top = kStatusHeight;
+    for (int row = 0; row < kBrowserRows; ++row) {
+        const int index = browser.scroll() + row;
+        if (index >= static_cast<int>(entries.size())) break;
+
+        const FileEntry& entry = entries[index];
+        const int y = list_top + row * kRowHeight;
+        const bool selected = index == browser.selection();
+
+        if (selected) {
+            canvas.fillRect(0, y, w, kRowHeight, 0x2945);
+            canvas.text(3, y + 2, ">", Theme::kAccent);
+        }
+
+        std::string name = entry.name;
+        if (entry.is_directory && name != "..") name += "/";
+
+        canvas.text(12, y + 2, truncate(name, 39),
+                    entry.is_directory ? Theme::kAccent : Theme::kTextBright);
+
+        const std::string right =
+            entry.is_directory ? std::string("DIR") : humanSize(entry.size);
+        drawTextRight(canvas, w - 4, y + 2, right, Theme::kTextDim);
+    }
+
+    bool has_files = false;
+    for (const FileEntry& entry : entries) {
+        if (!entry.is_directory) {
+            has_files = true;
+            break;
+        }
+    }
+    if (!has_files) {
+        const std::string empty = "NO .STL IN THIS FOLDER";
+        canvas.text((w - canvas.textWidth(empty)) / 2, 78, empty,
+                    Theme::kTextDim);
+    }
+
+    // Bottom bar: error message or key hints.
+    const int hint_y = h - kHintHeight;
+    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
+    canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
+
+    if (!browser.error().empty()) {
+        canvas.text(kTextLeft, hint_y + kTextTop,
+                    truncate(browser.error(), 52), 0xF800);
+    } else {
+        canvas.text(kTextLeft, hint_y + kTextTop,
+                    "ENT OPEN  ESC UP  R REFRESH", Theme::kText);
+        drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD ESC EXIT",
+                      Theme::kTextDim);
+    }
+}
+
+void drawLoading(Canvas& canvas, const std::string& filename) {
+    const int w = canvas.width();
+    const int h = canvas.height();
+    canvas.clear(Theme::kBackground);
+
+    const std::string title = "LOADING";
+    canvas.text((w - canvas.textWidth(title)) / 2, h / 2 - 18, title,
+                Theme::kAccent);
+    const std::string name = truncate(filename, 44);
+    canvas.text((w - canvas.textWidth(name)) / 2, h / 2, name,
+                Theme::kTextBright);
+    const std::string wait = "PLEASE WAIT";
+    canvas.text((w - canvas.textWidth(wait)) / 2, h / 2 + 16, wait,
+                Theme::kTextDim);
 }

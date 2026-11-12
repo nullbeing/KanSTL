@@ -78,11 +78,15 @@ Key translate(int code) {
             return Key::Reset;
         case KEY_A:
             return Key::Auto;
+        case KEY_PAGEUP:
+            return Key::PageUp;
+        case KEY_PAGEDOWN:
+            return Key::PageDown;
         case KEY_ENTER:
         case KEY_KPENTER:
-            return Key::Plus;   // zoom in
+            return Key::Enter;
         case KEY_SPACE:
-            return Key::Minus;  // zoom out
+            return Key::Space;
         case KEY_0:
             return Key::Fit;
         case KEY_W:
