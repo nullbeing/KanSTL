@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -108,12 +109,18 @@ void drawUi(Canvas& canvas, const UiState& state) {
     canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
     canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
 
-    char view[64];
-    std::snprintf(view, sizeof(view), "Y %+d  P %+d  Z %.2f  %s%s",
+    const bool custom_pivot =
+        std::fabs(state.camera.pivot_x) > 1e-4f ||
+        std::fabs(state.camera.pivot_y) > 1e-4f ||
+        std::fabs(state.camera.pivot_z) > 1e-4f;
+
+    char view[80];
+    std::snprintf(view, sizeof(view), "Y %+d  P %+d  Z %.2f  %s%s%s",
                   static_cast<int>(state.camera.yaw_deg),
                   static_cast<int>(state.camera.pitch_deg),
                   state.camera.zoom, state.wireframe ? "WIRE" : "SOLID",
-                  state.auto_rotate ? "  AUTO" : "");
+                  state.auto_rotate ? "  AUTO" : "",
+                  custom_pivot ? "  CENTER" : "");
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
     drawTextRight(canvas, w - 4, hint_y + kTextTop, "H HELP", Theme::kTextDim);
@@ -133,7 +140,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay.
     const int panel_w = 218;
-    const int panel_h = 124;
+    const int panel_h = 134;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
@@ -142,6 +149,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     static const char* lines[] = {
         "ARROWS    ROTATE",
+        "ALT+ARROWS MOVE CENTER",
         "ENTER     ZOOM IN",
         "SPACE     ZOOM OUT",
         "R         RESET VIEW",

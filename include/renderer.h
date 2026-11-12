@@ -10,6 +10,10 @@ struct Camera {
     float yaw_deg = -30.0f;
     float pitch_deg = 20.0f;
     float zoom = 1.0f;
+    // Rotation center in normalized model space. (0,0,0) is the model center.
+    float pivot_x = 0.0f;
+    float pivot_y = 0.0f;
+    float pivot_z = 0.0f;
 };
 
 struct Rect {

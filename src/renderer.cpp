@@ -58,12 +58,15 @@ void Renderer::project(const Mesh& mesh, const Camera& camera,
 
     for (size_t i = 0; i < vertex_count; ++i) {
         const Vec3& v = mesh.vertices[i];
+        const float vx = v.x - camera.pivot_x;
+        const float vy = v.y - camera.pivot_y;
+        const float vz = v.z - camera.pivot_z;
 
         // Pitch around X, then yaw around Y.
-        const float y1 = v.y * cp - v.z * sp;
-        const float z1 = v.y * sp + v.z * cp;
-        const float x2 = v.x * cy + z1 * sy;
-        const float z2 = -v.x * sy + z1 * cy;
+        const float y1 = vy * cp - vz * sp;
+        const float z1 = vy * sp + vz * cp;
+        const float x2 = vx * cy + z1 * sy;
+        const float z2 = -vx * sy + z1 * cy;
 
         screen_x_[i] = center_x + x2 * scale;
         screen_y_[i] = center_y - y1 * scale;

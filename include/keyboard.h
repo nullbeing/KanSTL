@@ -32,6 +32,7 @@ public:
 
     int fd() const { return fd_; }
     bool isOpen() const { return fd_ >= 0; }
+    bool altPressed() const { return alt_; }
 
     // Returns one translated key event. Repeated kernel events are ignored;
     // the app implements its own hold/repeat timing.
@@ -39,6 +40,7 @@ public:
 
 private:
     int fd_ = -1;
+    bool alt_ = false;
 };
 
 #endif  // STLVIEWER_KEYBOARD_H

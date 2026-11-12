@@ -77,8 +77,9 @@ void printUsage(const char* argv0) {
         "Without a model path the app opens the file browser.\n"
         "\n"
         "Viewer keys:\n"
-        "  Arrows rotate, Enter/Space zoom, R reset, 0 fit,\n"
-        "  W wire/solid, A auto-rotate, S screenshot, H help,\n"
+        "  Arrows rotate, Alt+arrows move the rotation center,\n"
+        "  Enter/Space zoom, R reset, 0 fit, W wire/solid,\n"
+        "  A auto-rotate, S screenshot, H help,\n"
         "  Esc returns to the file browser; hold Esc to exit.\n"
         "\n"
         "Browser keys:\n"
@@ -228,9 +229,72 @@ Rect activeViewport(const Canvas& canvas, bool no_ui) {
 void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
                  Renderer& renderer, const UiState& ui, bool no_ui,
                  RenderMode mode) {
+    const Rect viewport = activeViewport(canvas, no_ui);
     canvas.clear(Theme::kBackground);
-    renderer.render(mesh, camera, canvas, activeViewport(canvas, no_ui), mode);
+    renderer.render(mesh, camera, canvas, viewport, mode);
+
+    const bool custom_pivot =
+        std::fabs(camera.pivot_x) > 1e-4f ||
+        std::fabs(camera.pivot_y) > 1e-4f ||
+        std::fabs(camera.pivot_z) > 1e-4f;
+    if (custom_pivot) {
+        const int cx = viewport.x + viewport.w / 2;
+        const int cy = viewport.y + viewport.h / 2;
+        canvas.line(cx - 4, cy, cx + 4, cy, Theme::kAccent);
+        canvas.line(cx, cy - 4, cx, cy + 4, Theme::kAccent);
+    }
+
     if (!no_ui) drawUi(canvas, ui);
+}
+
+bool isArrowKey(Key key) {
+    return key == Key::Up || key == Key::Down || key == Key::Left ||
+           key == Key::Right;
+}
+
+// Move the rotation center along the current screen axes. The pivot is
+// subtracted before rotation, so the model follows the arrow direction and
+// the point under the center crosshair becomes the new orbit center.
+void applyPivotKey(Key key, Camera& camera) {
+    const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
+    const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
+    const float cp = std::cos(pitch);
+    const float sp = std::sin(pitch);
+    const float cy = std::cos(yaw);
+    const float sy = std::sin(yaw);
+
+    // Screen right/up converted back to model space.
+    const float rx = cy;
+    const float ry = sy * sp;
+    const float rz = sy * cp;
+    const float ux = 0.0f;
+    const float uy = cp;
+    const float uz = -sp;
+    const float step = 0.05f;
+
+    if (key == Key::Left) {
+        camera.pivot_x += rx * step;
+        camera.pivot_y += ry * step;
+        camera.pivot_z += rz * step;
+    } else if (key == Key::Right) {
+        camera.pivot_x -= rx * step;
+        camera.pivot_y -= ry * step;
+        camera.pivot_z -= rz * step;
+    } else if (key == Key::Up) {
+        camera.pivot_x -= ux * step;
+        camera.pivot_y -= uy * step;
+        camera.pivot_z -= uz * step;
+    } else if (key == Key::Down) {
+        camera.pivot_x += ux * step;
+        camera.pivot_y += uy * step;
+        camera.pivot_z += uz * step;
+    } else {
+        return;
+    }
+
+    camera.pivot_x = std::max(-1.5f, std::min(1.5f, camera.pivot_x));
+    camera.pivot_y = std::max(-1.5f, std::min(1.5f, camera.pivot_y));
+    camera.pivot_z = std::max(-1.5f, std::min(1.5f, camera.pivot_z));
 }
 
 void applyCameraKey(Key key, Camera& camera) {
@@ -349,6 +413,7 @@ int runInteractive(const Options& options) {
 
     struct HeldKey {
         bool active = false;
+        bool pivot = false;
         std::chrono::steady_clock::time_point next_repeat;
     };
     std::array<HeldKey, 16> held;
@@ -406,6 +471,9 @@ int runInteractive(const Options& options) {
             dirty = true;
         } else if (key == Key::Fit) {
             camera.zoom = 1.0f;
+            camera.pivot_x = 0.0f;
+            camera.pivot_y = 0.0f;
+            camera.pivot_z = 0.0f;
             dirty = true;
         } else if (key == Key::Auto) {
             auto_rotate = !auto_rotate;
@@ -419,11 +487,16 @@ int runInteractive(const Options& options) {
         } else if (key == Key::Shot) {
             saveScreenshot();
         } else if (isViewerRepeatable(key)) {
-            applyCameraKey(key, camera);
-            held[keyIndex(key)].active = true;
-            held[keyIndex(key)].next_repeat =
-                std::chrono::steady_clock::now() +
-                std::chrono::milliseconds(300);
+            HeldKey& state = held[keyIndex(key)];
+            state.pivot = isArrowKey(key) && keyboard.altPressed();
+            if (state.pivot) {
+                applyPivotKey(key, camera);
+            } else {
+                applyCameraKey(key, camera);
+            }
+            state.active = true;
+            state.next_repeat = std::chrono::steady_clock::now() +
+                                std::chrono::milliseconds(300);
             dirty = true;
         }
     };
@@ -536,7 +609,11 @@ int runInteractive(const Options& options) {
 
             const Key key = static_cast<Key>(i);
             if (mode == AppMode::Viewer) {
-                applyCameraKey(key, camera);
+                if (held[i].pivot) {
+                    applyPivotKey(key, camera);
+                } else {
+                    applyCameraKey(key, camera);
+                }
                 held[i].next_repeat = now + std::chrono::milliseconds(20);
             } else {
                 if (key == Key::Up) {

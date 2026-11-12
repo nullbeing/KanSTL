@@ -84,6 +84,9 @@ The renderer has no dependency on the UI or on APPLaunch.
 
 - z-buffer: 320 x 170 floats = 217 KB, no memory pressure
 - Backface culling first: removes roughly half the triangles
+- Rotation center (`pivot`) is stored in normalized model space and subtracted
+  before rotation; Alt+arrows move it along the current screen axes and a
+  crosshair marks the orbit point
 - Flat shading by default; STL is faceted anyway and it is the cheapest mode
 - Two-sided shading (`abs(dot)`) tolerates inconsistent STL normals
 - Matcap (32x32 normal lookup) as an optional nicer shading mode
@@ -125,10 +128,11 @@ Planned optimizations, in order:
 ```text
 Left/Right   yaw
 Up/Down      pitch
+Alt+arrows   move the rotation center along screen axes
 Enter        zoom in
 Space        zoom out
-R            reset view
-0            fit to screen
+R            reset view and center
+0            fit to screen and recenter
 W            wireframe / solid
 A            auto-rotate
 Esc          back to the file browser; long press exits

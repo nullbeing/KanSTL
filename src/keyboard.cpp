@@ -113,6 +113,7 @@ void Keyboard::close() {
         ::close(fd_);
         fd_ = -1;
     }
+    alt_ = false;
 }
 
 bool Keyboard::open(const std::string& device_path, std::string& error) {
@@ -156,6 +157,10 @@ bool Keyboard::readEvent(Key& key, bool& pressed) {
         }
         if (ev.type != EV_KEY) continue;
 
+        if (ev.code == KEY_LEFTALT || ev.code == KEY_RIGHTALT) {
+            alt_ = ev.value != 0;
+            continue;
+        }
         if (ev.value == 2) continue;  // kernel auto-repeat; app does its own
 
         Key translated = translate(ev.code);

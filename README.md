@@ -19,7 +19,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
 - Wireframe mode with depth-based shading (`W` toggles)
-- Arrow keys rotate, `Enter` / `Space` zoom
+- Arrow keys rotate, `Alt` + arrows move the rotation center
+- `Enter` / `Space` zoom, `R` / `0` reset the view and center
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Offscreen PNG rendering for development without a device
 - Built-in benchmark mode
@@ -118,10 +119,11 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | Key | Action |
 | --- | --- |
 | Arrows | Rotate |
+| Alt + Arrows | Move the rotation center (model follows the arrow) |
 | `Enter` | Zoom in |
 | `Space` | Zoom out |
-| `R` | Reset view |
-| `0` | Fit to screen |
+| `R` | Reset view and center |
+| `0` | Fit to screen and recenter |
 | `W` | Toggle solid / wireframe |
 | `A` | Toggle auto-rotate |
 | `S` | Save `/tmp/stlviewer_shot.png` |
