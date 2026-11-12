@@ -4,6 +4,8 @@
 
 - M1 complete: STL loader, wireframe renderer, keyboard rotation/zoom, pixel UI,
   offscreen PNG rendering, benchmark mode
+- Device measurement (CM0, 12,000 triangles): 12.5 ms/frame raw render
+  (~80 fps); interactive auto-rotate is paced at ~60 fps
 - M2 next: solid shading with a z-buffer, backface culling, wireframe toggle
 
 ## Scope

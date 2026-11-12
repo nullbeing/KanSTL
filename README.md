@@ -53,12 +53,16 @@ cmake --build build-aarch64 -j$(nproc)
 # Camera options
 ./stlviewer --yaw 45 --pitch 30 --zoom 1.5 --shot out.png model.stl
 
+# Start spinning automatically (useful for demos)
+./stlviewer --auto model.stl
+
 # Benchmark the wireframe renderer (offscreen)
 ./stlviewer --bench 300 examples/icosphere.stl
 ```
 
 If no model path is given, the viewer uses `$STLVIEWER_MODEL`, then the first
-`.stl` in the current directory, then the first `.stl` in `$HOME`.
+`.stl` in the current directory, then the first `.stl` in `~/models`, then the
+first `.stl` in `$HOME`.
 
 On the desktop, `--shot` and `--bench` need no framebuffer or keyboard.
 

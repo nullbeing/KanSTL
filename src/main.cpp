@@ -41,6 +41,7 @@ struct Options {
     float zoom = 1.0f;
     int bench_frames = 0;
     bool no_ui = false;
+    bool auto_start = false;
 };
 
 void printUsage(const char* argv0) {
@@ -57,6 +58,7 @@ void printUsage(const char* argv0) {
         "  --bench [frames]    Render frames offscreen and report speed\n"
         "  --fb <device>       Framebuffer device (default /dev/fb0)\n"
         "  --kbd <device>      Keyboard event device (default autodetect)\n"
+        "  --auto              Start with auto-rotate enabled\n"
         "  --no-ui             Hide status and hint bars\n"
         "  -h, --help          Show this help\n"
         "\n"
@@ -118,6 +120,8 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
             options.fb_device = argv[++i];
         } else if (arg == "--kbd" && i + 1 < argc) {
             options.kbd_device = argv[++i];
+        } else if (arg == "--auto") {
+            options.auto_start = true;
         } else if (arg == "--no-ui") {
             options.no_ui = true;
         } else if (!arg.empty() && arg[0] == '-') {
@@ -159,6 +163,10 @@ std::string findDefaultModel() {
         return found;
     }
     if (const char* home = std::getenv("HOME")) {
+        if (std::string found = scanForStl(std::filesystem::path(home) / "models");
+            !found.empty()) {
+            return found;
+        }
         if (std::string found = scanForStl(home); !found.empty()) {
             return found;
         }
@@ -239,7 +247,7 @@ int runInteractive(const Options& options, const Mesh& mesh) {
     bool running = true;
     bool dirty = true;
     bool help = false;
-    bool auto_rotate = false;
+    bool auto_rotate = options.auto_start;
     int fps = 0;
     std::string toast;
     auto toast_until = std::chrono::steady_clock::now();
@@ -252,8 +260,10 @@ int runInteractive(const Options& options, const Mesh& mesh) {
 
     auto now = std::chrono::steady_clock::now();
     auto last_frame = now;
+    auto last_present = now;
     auto last_keepalive = now;
     auto esc_pressed = now;
+    double last_render_seconds = 0.0;
 
     auto saveScreenshot = [&]() {
         const std::string path = "/tmp/stlviewer_shot.png";
@@ -268,10 +278,25 @@ int runInteractive(const Options& options, const Mesh& mesh) {
     };
 
     while (running && g_running) {
+        // Pace continuous rendering at roughly 60 fps, but keep polling
+        // often enough for responsive key handling.
+        auto loop_now = std::chrono::steady_clock::now();
+        int timeout_ms = 16;
+        if (dirty || auto_rotate) {
+            const double since_present =
+                std::chrono::duration<double>(loop_now - last_present).count() *
+                1000.0;
+            // Rendering happens after poll, so reserve the previous frame's
+            // render time from the 16 ms budget as well.
+            const double wait =
+                16.0 - since_present - last_render_seconds * 1000.0;
+            timeout_ms = wait <= 0.0 ? 0 : static_cast<int>(wait);
+        }
+
         struct pollfd pfd {};
         pfd.fd = keyboard.fd();
         pfd.events = POLLIN;
-        int poll_result = poll(&pfd, 1, 10);
+        int poll_result = poll(&pfd, 1, timeout_ms);
         if (poll_result > 0) {
             Key key;
             bool pressed;
@@ -299,7 +324,7 @@ int runInteractive(const Options& options, const Mesh& mesh) {
                         state.active = true;
                         state.next_repeat =
                             std::chrono::steady_clock::now() +
-                            std::chrono::milliseconds(380);
+                            std::chrono::milliseconds(300);
                         dirty = true;
                     }
                 } else {
@@ -328,7 +353,7 @@ int runInteractive(const Options& options, const Mesh& mesh) {
             if (!held[i].active) continue;
             if (now < held[i].next_repeat) continue;
             applyRotationKey(static_cast<Key>(i), camera);
-            held[i].next_repeat = now + std::chrono::milliseconds(45);
+            held[i].next_repeat = now + std::chrono::milliseconds(20);
             dirty = true;
         }
 
@@ -355,14 +380,27 @@ int runInteractive(const Options& options, const Mesh& mesh) {
             const auto render_start = std::chrono::steady_clock::now();
             renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui);
             framebuffer.present(canvas);
-            const double seconds =
-                std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                             render_start)
+            const auto render_end = std::chrono::steady_clock::now();
+            const double render_seconds =
+                std::chrono::duration<double>(render_end - render_start)
                     .count();
-            if (seconds > 0.0001) {
-                const int sample = static_cast<int>(std::lround(1.0 / seconds));
+            last_render_seconds =
+                last_render_seconds <= 0.0
+                    ? render_seconds
+                    : last_render_seconds * 0.7 + render_seconds * 0.3;
+
+            // Report the rate frames actually reach the panel. Idle gaps are
+            // ignored so a paused viewer keeps its last active rate.
+            const auto present_now = render_end;
+            const double interval =
+                std::chrono::duration<double>(present_now - last_present)
+                    .count();
+            if (interval > 0.0001 && interval < 0.25) {
+                const int sample =
+                    static_cast<int>(std::lround(1.0 / interval));
                 fps = fps == 0 ? sample : (fps * 3 + sample) / 4;
             }
+            last_present = present_now;
             dirty = false;
         }
 
