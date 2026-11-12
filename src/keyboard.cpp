@@ -76,8 +76,6 @@ Key translate(int code) {
 
         case KEY_R:
             return Key::Reset;
-        case KEY_A:
-            return Key::Auto;
         case KEY_PAGEUP:
             return Key::PageUp;
         case KEY_PAGEDOWN:
@@ -100,8 +98,6 @@ Key translate(int code) {
             return Key::Help;
         case KEY_S:
             return Key::Shot;
-        case KEY_B:
-            return Key::Files;
         case KEY_BACKSPACE:
             return Key::Back;
         case KEY_ESC:

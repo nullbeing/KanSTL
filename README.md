@@ -30,7 +30,7 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
 - Red/green/blue XYZ orientation gizmo in the top-right corner, drawn above
   the model and overlays
-- `B` / `8` opens the file list; `Esc` is exit-only (hold 3 seconds)
+- `8` opens the file list; `Esc` is exit-only (hold 3 seconds)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Light-blue "files" pill in the bottom bar, aligned with the physical 8 key
 - Offscreen PNG rendering for development without a device
@@ -156,8 +156,8 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `R` | Reset view and center |
 | `0` | Fit to screen and recenter |
 | `7` | Cycle solid / edges / matcap / wireframe |
-| `6` / `A` | Cycle auto-rotate off / horizontal / vertical |
-| `B` / `8` | Open the file list |
+| `6` | Cycle auto-rotate off / horizontal / vertical |
+| `8` | Open the file list |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
