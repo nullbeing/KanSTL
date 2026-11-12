@@ -58,7 +58,7 @@ constexpr uint16_t kWireFar = 0x1A69;     // dark teal
 constexpr uint16_t kPillBackground = 0xAEDC;  // light blue
 constexpr uint16_t kPillActive = 0x9725;      // mint green
 constexpr uint16_t kPillText = 0x0000;        // black
-constexpr uint16_t kDialogShadow = 0x29CA;      // steel-blue halo
+constexpr uint16_t kDialogShadow = 0x42CF;      // steel-blue halo
 constexpr uint16_t kDialogBackground = 0x18C3;  // raised dark slate
 constexpr uint16_t kDialogBorder = 0x4A69;      // soft border
 }  // namespace Theme

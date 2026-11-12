@@ -89,7 +89,7 @@ void drawSoftShadow(Canvas& canvas, int px, int py, int w, int h,
         float alpha;
     };
     static const Layer layers[] = {
-        {5, 0.04f}, {4, 0.08f}, {3, 0.12f}, {2, 0.16f}, {1, 0.20f}};
+        {5, 0.08f}, {4, 0.12f}, {3, 0.16f}, {2, 0.20f}, {1, 0.24f}};
     for (const Layer& layer : layers) {
         fillRoundRectBlend(canvas, px - layer.offset, py - layer.offset,
                            w + layer.offset * 2, h + layer.offset * 2,
