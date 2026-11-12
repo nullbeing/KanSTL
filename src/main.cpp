@@ -83,8 +83,8 @@ void printUsage(const char* argv0) {
         "  Esc returns to the file browser; hold 3s to exit.\n"
         "\n"
         "Browser keys:\n"
-        "  Up/Down select, PgUp/PgDn page, Enter open, Esc parent,\n"
-        "  R refresh; hold 3s to exit.\n",
+        "  Up/Down select, PgUp/PgDn page, Enter open,\n"
+        "  Left/Backspace parent, R refresh; hold Esc 3s to exit.\n",
         argv0);
 }
 
@@ -416,7 +416,7 @@ int runInteractive(const Options& options) {
         bool pivot = false;
         std::chrono::steady_clock::time_point next_repeat;
     };
-    std::array<HeldKey, 16> held;
+    std::array<HeldKey, 20> held;
 
     auto now = std::chrono::steady_clock::now();
     auto last_frame = now;
@@ -424,8 +424,10 @@ int runInteractive(const Options& options) {
     auto last_keepalive = now;
     auto esc_pressed = now;
     bool esc_down = false;
+    bool exit_prompt_visible = false;
     double last_render_seconds = 0.0;
     constexpr auto kExitHold = std::chrono::milliseconds(3000);
+    constexpr auto kExitPromptDelay = std::chrono::milliseconds(300);
 
     auto saveScreenshot = [&]() {
         const std::string path = "/tmp/stlviewer_shot.png";
@@ -531,6 +533,9 @@ int runInteractive(const Options& options) {
             } else {
                 dirty = true;
             }
+        } else if (key == Key::Left || key == Key::Back) {
+            browser.goParent();
+            dirty = true;
         } else if (key == Key::Reset) {
             browser.reload();
             dirty = true;
@@ -565,6 +570,7 @@ int runInteractive(const Options& options) {
                     if (key == Key::Esc) {
                         esc_pressed = std::chrono::steady_clock::now();
                         esc_down = true;
+                        exit_prompt_visible = false;
                         dirty = true;
                     } else if (mode == AppMode::Viewer) {
                         handleViewerPress(key);
@@ -574,6 +580,7 @@ int runInteractive(const Options& options) {
                 } else {
                     if (key == Key::Esc) {
                         esc_down = false;
+                        exit_prompt_visible = false;
                         const auto duration =
                             std::chrono::steady_clock::now() - esc_pressed;
                         if (duration >= kExitHold) {
@@ -589,11 +596,8 @@ int runInteractive(const Options& options) {
                                 }
                                 for (HeldKey& state : held) state.active = false;
                             }
-                        } else {
-                            browser.goParent();
                         }
-                        // Always repaint so the prompt disappears even when
-                        // the back action has nowhere to go (e.g. at "/").
+                        // Always repaint so the prompt disappears immediately.
                         dirty = true;
                     } else if ((mode == AppMode::Viewer &&
                                 isViewerRepeatable(key)) ||
@@ -607,8 +611,12 @@ int runInteractive(const Options& options) {
 
         now = std::chrono::steady_clock::now();
         if (esc_down) {
-            if (now - esc_pressed >= kExitHold) {
+            const auto held = now - esc_pressed;
+            if (held >= kExitHold) {
                 running = false;
+            }
+            if (held >= kExitPromptDelay) {
+                exit_prompt_visible = true;
             }
             dirty = true;
         }
@@ -663,7 +671,7 @@ int runInteractive(const Options& options) {
             const auto render_start = std::chrono::steady_clock::now();
             if (mode == AppMode::Browser) {
                 drawBrowser(canvas, browser);
-                if (esc_down) drawExitPrompt(canvas, exit_progress);
+                if (exit_prompt_visible) drawExitPrompt(canvas, exit_progress);
                 framebuffer.present(canvas);
                 last_render_seconds = 0.0;
             } else if (have_model) {
@@ -679,7 +687,7 @@ int runInteractive(const Options& options) {
                 renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
                             wireframe ? RenderMode::Wireframe
                                       : RenderMode::Solid);
-                if (esc_down) drawExitPrompt(canvas, exit_progress);
+                if (exit_prompt_visible) drawExitPrompt(canvas, exit_progress);
                 framebuffer.present(canvas);
 
                 const auto render_end = std::chrono::steady_clock::now();

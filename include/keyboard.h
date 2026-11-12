@@ -19,6 +19,7 @@ enum class Key {
     Wire,
     Help,
     Shot,
+    Back,
     Esc,
 };
 

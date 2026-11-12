@@ -140,7 +140,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay.
     const int panel_w = 218;
-    const int panel_h = 134;
+    const int panel_h = 144;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
@@ -158,7 +158,8 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "A         AUTO ROTATE",
         "S         SCREENSHOT",
         "H         CLOSE HELP",
-        "ESC       HOLD 3S EXIT",
+        "ESC       BACK TO LIST",
+        "HOLD ESC  3S TO EXIT",
     };
     int y = py + 20;
     for (const char* line : lines) {
@@ -235,7 +236,7 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
                     truncate(browser.error(), 52), 0xF800);
     } else {
         canvas.text(kTextLeft, hint_y + kTextTop,
-                    "ENT OPEN  ESC UP  R REFRESH", Theme::kText);
+                    "ENT OPEN  <- UP  R REFRESH", Theme::kText);
         drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD 3S EXIT",
                       Theme::kTextDim);
     }

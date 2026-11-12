@@ -108,9 +108,12 @@ Wireframe mode (`W`):
 | Up / Down | Select |
 | PgUp / PgDn | Page |
 | `Enter` | Open folder / model |
-| `Esc` | Parent folder |
+| `Left` / `Backspace` | Parent folder |
 | `R` | Refresh |
 | `Esc` (hold 3s) | Exit, with an on-screen countdown |
+
+`Esc` is exit-only in the file browser; use `Left` or `Backspace` to go up a
+directory.
 
 Only folders and `.stl` files are listed. The last directory and file selection
 are remembered in `~/.config/stlviewer/last_dir`.

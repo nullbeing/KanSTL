@@ -147,7 +147,7 @@ File browser:
 Up/Down      select
 PgUp/PgDn    page
 Enter        open folder or model
-Esc          parent folder
+Left/Backspace  parent folder
 Esc (3s)     hold to exit, with the same progress prompt
 R            reload
 ```
