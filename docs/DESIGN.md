@@ -138,7 +138,7 @@ Space        zoom out
 R            reset view and center
 0            fit to screen and recenter
 7            cycle solid / edges / matcap
-6 / A        cycle auto-rotate off / horizontal yaw / pitch tumble
+6 / A        cycle auto-rotate off / horizontal yaw / view-axis roll
 W            toggle pure wireframe
 B / 8        open the file list (8 is under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown

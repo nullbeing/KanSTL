@@ -272,18 +272,23 @@ bool isArrowKey(Key key) {
 void applyPivotKey(Key key, Camera& camera) {
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
+    const float roll = camera.roll_deg * 3.14159265358979323846f / 180.0f;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
+    const float cr = std::cos(roll);
+    const float sr = std::sin(roll);
 
-    // Screen right/up converted back to model space.
-    const float rx = cy;
-    const float ry = sy * sp;
-    const float rz = sy * cp;
-    const float ux = 0.0f;
-    const float uy = cp;
-    const float uz = -sp;
+    // Screen right/up converted back to model space, including roll.
+    const float rx = cr * cy;
+    const float r_z1 = cr * sy;
+    const float ry = -sr * cp + r_z1 * sp;
+    const float rz = sr * sp + r_z1 * cp;
+    const float ux = sr * cy;
+    const float u_z1 = sr * sy;
+    const float uy = cr * cp + u_z1 * sp;
+    const float uz = -cr * sp + u_z1 * cp;
     const float step = 0.05f;
 
     if (key == Key::Left) {
@@ -503,7 +508,7 @@ int runInteractive(const Options& options) {
             if (auto_mode == AutoRotateMode::Off) {
                 auto_mode = AutoRotateMode::Horizontal;
             } else if (auto_mode == AutoRotateMode::Horizontal) {
-                auto_mode = AutoRotateMode::Vertical;
+                auto_mode = AutoRotateMode::Roll;
             } else {
                 auto_mode = AutoRotateMode::Off;
             }
@@ -695,10 +700,10 @@ int runInteractive(const Options& options) {
                 camera.yaw_deg += 35.0f * step;
                 while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
             } else {
-                // Continuous forward tumble around the pitch axis.
-                camera.pitch_deg += 30.0f * step;
-                while (camera.pitch_deg > 180.0f) camera.pitch_deg -= 360.0f;
-                while (camera.pitch_deg < -180.0f) camera.pitch_deg += 360.0f;
+                // View-axis barrel roll.
+                camera.roll_deg += 50.0f * step;
+                while (camera.roll_deg > 180.0f) camera.roll_deg -= 360.0f;
+                while (camera.roll_deg < -180.0f) camera.roll_deg += 360.0f;
             }
             dirty = true;
         }

@@ -22,8 +22,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - EDGES mode: solid faces with dark crease lines and a bright silhouette
 - MATCAP mode: metallic normal-map shading with a specular highlight
 - `7` cycles solid / edges / matcap; the bottom pill shows the current style
-- `6` cycles auto-rotate off / horizontal yaw (`auto h`) / continuous
-  pitch tumble (`auto v`); the tab turns mint green when active
+- `6` cycles auto-rotate off / horizontal yaw (`auto h`) / view-axis barrel
+  roll (`auto v`); the tab turns mint green when active
 - Wireframe mode with depth-based shading (`W` toggles)
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
@@ -156,7 +156,7 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `0` | Fit to screen and recenter |
 | `7` | Cycle solid / edges / matcap |
 | `W` | Toggle pure wireframe |
-| `6` / `A` | Cycle auto-rotate off / horizontal / vertical |
+| `6` / `A` | Cycle auto-rotate off / horizontal / view-axis roll |
 | `B` / `8` | Open the file list |
 | `S` | Save `/tmp/stlviewer_shot.png` |
 | `H` | Help overlay |
