@@ -50,6 +50,7 @@ struct Options {
     bool no_ui = false;
     bool auto_start = false;
     bool wireframe = false;
+    RenderMode style = RenderMode::Solid;
     bool list_dir = false;
     std::string list_path;
 };
@@ -69,8 +70,9 @@ void printUsage(const char* argv0) {
         "  --list [dir]        Print the file browser contents and exit\n"
         "  --fb <device>       Framebuffer device (default /dev/fb0)\n"
         "  --kbd <device>      Keyboard event device (default autodetect)\n"
+        "  --style <name>      solid (default), edges or matcap\n"
         "  --auto              Start with auto-rotate enabled\n"
-        "  --wireframe         Start in wireframe mode (default: solid)\n"
+        "  --wireframe         Start in wireframe mode\n"
         "  --no-ui             Hide status and hint bars\n"
         "  -h, --help          Show this help\n"
         "\n"
@@ -149,6 +151,18 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
             options.auto_start = true;
         } else if (arg == "--wireframe") {
             options.wireframe = true;
+        } else if (arg == "--style" && i + 1 < argc) {
+            const std::string value = argv[++i];
+            if (value == "solid") {
+                options.style = RenderMode::Solid;
+            } else if (value == "edges") {
+                options.style = RenderMode::Edges;
+            } else if (value == "matcap") {
+                options.style = RenderMode::Matcap;
+            } else {
+                error = "invalid --style value: " + value;
+                return false;
+            }
         } else if (arg == "--no-ui") {
             options.no_ui = true;
         } else if (!arg.empty() && arg[0] == '-') {
@@ -365,6 +379,7 @@ int runInteractive(const Options& options) {
     std::string current_path;
     bool auto_rotate = options.auto_start;
     bool wireframe = options.wireframe;
+    RenderMode style = options.style;
 
     std::string initial = options.file;
     if (initial.empty() && options.auto_start) initial = findDefaultModel();
@@ -481,6 +496,16 @@ int runInteractive(const Options& options) {
             dirty = true;
         } else if (key == Key::Auto) {
             auto_rotate = !auto_rotate;
+            dirty = true;
+        } else if (key == Key::Style) {
+            wireframe = false;
+            if (style == RenderMode::Solid) {
+                style = RenderMode::Edges;
+            } else if (style == RenderMode::Edges) {
+                style = RenderMode::Matcap;
+            } else {
+                style = RenderMode::Solid;
+            }
             dirty = true;
         } else if (key == Key::Wire) {
             wireframe = !wireframe;
@@ -682,13 +707,13 @@ int runInteractive(const Options& options) {
                 ui.camera = camera;
                 ui.fps = fps;
                 ui.auto_rotate = auto_rotate;
+                ui.style = style;
                 ui.wireframe = wireframe;
                 ui.help = help;
                 ui.toast = toast;
 
                 renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
-                            wireframe ? RenderMode::Wireframe
-                                      : RenderMode::Solid);
+                            wireframe ? RenderMode::Wireframe : style);
                 if (exit_prompt_visible) drawExitPrompt(canvas, exit_progress);
                 if (!options.no_ui) {
                     drawAxisGizmo(canvas, camera,
@@ -739,9 +764,10 @@ int runBenchmark(const Options& options, const Mesh& mesh) {
     UiState ui;
     ui.mesh = &mesh;
     ui.camera = camera;
+    ui.style = options.style;
     ui.wireframe = options.wireframe;
     const RenderMode mode =
-        options.wireframe ? RenderMode::Wireframe : RenderMode::Solid;
+        options.wireframe ? RenderMode::Wireframe : options.style;
 
     const auto start = std::chrono::steady_clock::now();
     for (int frame = 0; frame < options.bench_frames; ++frame) {
@@ -773,10 +799,11 @@ int renderScreenshot(const Options& options, Mesh& mesh) {
     ui.mesh = &mesh;
     ui.camera = camera;
     ui.fps = 0;
+    ui.style = options.style;
     ui.wireframe = options.wireframe;
 
     renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
-                options.wireframe ? RenderMode::Wireframe : RenderMode::Solid);
+                options.wireframe ? RenderMode::Wireframe : options.style);
     if (!options.no_ui) {
         drawAxisGizmo(canvas, camera, activeViewport(canvas, options.no_ui));
     }

@@ -1,6 +1,7 @@
 #ifndef STLVIEWER_RENDERER_H
 #define STLVIEWER_RENDERER_H
 
+#include <cstdint>
 #include <vector>
 
 #include "canvas.h"
@@ -25,11 +26,15 @@ struct Rect {
 
 enum class RenderMode {
     Solid,
+    Edges,
+    Matcap,
     Wireframe,
 };
 
 class Renderer {
 public:
+    Renderer();
+
     void render(const Mesh& mesh, const Camera& camera, Canvas& canvas,
                 const Rect& viewport, RenderMode mode);
 
@@ -37,12 +42,22 @@ private:
     void project(const Mesh& mesh, const Camera& camera, const Rect& viewport);
     void renderWireframe(Canvas& canvas, const Rect& viewport);
     void renderSolid(const Mesh& mesh, Canvas& canvas, const Rect& viewport,
-                     float cp, float sp, float cy, float sy);
+                     float cp, float sp, float cy, float sy, bool matcap);
+    void renderFeatureEdges(const Mesh& mesh, const Camera& camera,
+                            Canvas& canvas, const Rect& viewport, float cp,
+                            float sp, float cy, float sy);
+
+    void buildMatcap();
+    uint16_t matcapColor(float nx, float ny) const;
 
     std::vector<float> screen_x_;
     std::vector<float> screen_y_;
     std::vector<float> depth_;
     std::vector<float> zbuffer_;
+    std::vector<float> edge_screen_x_;
+    std::vector<float> edge_screen_y_;
+    std::vector<float> edge_depth_;
+    uint16_t matcap_[32 * 32] = {};
 };
 
 #endif  // STLVIEWER_RENDERER_H

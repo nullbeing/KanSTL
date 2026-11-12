@@ -7,7 +7,7 @@ A small STL 3D viewer for the M5Stack Cardputer Zero (320x170 RGB565
 framebuffer). It loads binary or ASCII STL files and renders them with a
 software rasterizer, straight into `/dev/fb0`.
 
-**Status: M3 complete** - STL loading, solid shading with a z-buffer,
+**Status: M4 in progress** - STL loading, solid/edges/matcap rendering,
 wireframe toggle, rotate/zoom, and an in-app file browser.
 
 ![STL Viewer](docs/images/icosphere.png)
@@ -19,6 +19,9 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Esc-to-exit needs a deliberate 3 second hold, with an on-screen progress bar
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
+- EDGES mode: solid faces with dark crease lines and a bright silhouette
+- MATCAP mode: metallic normal-map shading with a specular highlight
+- `7` cycles solid / edges / matcap; the bottom pill shows the current style
 - Wireframe mode with depth-based shading (`W` toggles)
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
@@ -71,11 +74,14 @@ cmake --build build-aarch64 -j$(nproc)
 # Start spinning automatically (useful for demos)
 ./stlviewer --auto model.stl
 
-# Start in wireframe mode
+# Render style and pure wireframe
+./stlviewer --style edges model.stl
+./stlviewer --style matcap --shot matcap.png examples/icosphere.stl
 ./stlviewer --wireframe model.stl
 
-# Benchmark the renderer (offscreen), solid or wireframe
+# Benchmark the renderer (offscreen)
 ./stlviewer --bench 300 examples/icosphere.stl
+./stlviewer --bench 300 --style edges examples/icosphere.stl
 ./stlviewer --bench 300 --wireframe examples/icosphere.stl
 ```
 
@@ -91,15 +97,29 @@ keyboard.
 Measured on a Cardputer Zero (CM0) at 320x170 with a 12,000 triangle torus:
 
 ```text
-solid      7.8 ms/frame   ~128 fps
-wireframe 12.6 ms/frame    ~79 fps
-interactive auto-rotate    ~60 fps (frame pacing)
+solid       7.8 ms/frame   ~128 fps   (12k triangles)
+wireframe  12.6 ms/frame    ~79 fps   (12k triangles)
+edges      17.8 ms/frame    ~56 fps   (23.8k triangles)
+matcap     10.1 ms/frame    ~99 fps   (23.8k triangles)
 ```
 
 The frame rate in the status bar is the rate frames actually reach the panel;
 idle time is excluded.
 
-Wireframe mode (`W`):
+## Render styles
+
+`7` cycles solid → edges → matcap, and the bottom pill shows the active style.
+`W` toggles pure wireframe.
+
+EDGES:
+
+![EDGES](docs/images/edges.png)
+
+MATCAP:
+
+![MATCAP](docs/images/matcap.png)
+
+Wireframe:
 
 ![Wireframe](docs/images/wireframe.png)
 
@@ -132,7 +152,8 @@ are remembered in `~/.config/stlviewer/last_dir`.
 | `Space` | Zoom out |
 | `R` | Reset view and center |
 | `0` | Fit to screen and recenter |
-| `W` | Toggle solid / wireframe |
+| `7` | Cycle solid / edges / matcap |
+| `W` | Toggle pure wireframe |
 | `A` | Toggle auto-rotate |
 | `B` / `8` | Open the file list |
 | `S` | Save `/tmp/stlviewer_shot.png` |

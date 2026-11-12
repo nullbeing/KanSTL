@@ -73,6 +73,20 @@ std::string humanSize(uint64_t bytes) {
     return buf;
 }
 
+const char* styleName(RenderMode style) {
+    switch (style) {
+        case RenderMode::Edges:
+            return "edges";
+        case RenderMode::Matcap:
+            return "matcap";
+        case RenderMode::Wireframe:
+            return "wire";
+        case RenderMode::Solid:
+        default:
+            return "solid";
+    }
+}
+
 std::string displayPath(const std::string& path) {
     std::string shown = path;
     const char* home = std::getenv("HOME");
@@ -138,20 +152,31 @@ void drawUi(Canvas& canvas, const UiState& state) {
         std::fabs(state.camera.pivot_z) > 1e-4f;
 
     char view[80];
-    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f %s%s%s",
+    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f%s%s",
                   static_cast<int>(state.camera.yaw_deg),
                   static_cast<int>(state.camera.pitch_deg),
-                  state.camera.zoom, state.wireframe ? "WIRE" : "SOLID",
+                  state.camera.zoom,
                   state.auto_rotate ? " AUTO" : "",
                   custom_pivot ? " CENTER" : "");
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
-    // Pill button aligned with the "8" key (official x=273 on this panel).
+    const int pill_h = 10;
+    const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
+
+    // Render style button aligned with the "7" key (x=217).
+    const std::string style_label =
+        state.wireframe ? "wire" : styleName(state.style);
+    const int style_w = 42;
+    const int style_x = 217 - style_w / 2;
+    fillRoundRect(canvas, style_x, pill_y, style_w, pill_h, 2,
+                  Theme::kPillBackground);
+    canvas.text(style_x + (style_w - canvas.textWidth(style_label)) / 2,
+                pill_y + (pill_h - 8) / 2, style_label, Theme::kPillText);
+
+    // Files button aligned with the "8" key (x=273).
     const std::string files_label = "files";
     const int pill_w = 36;
-    const int pill_h = 10;
     const int pill_x = 273 - pill_w / 2;
-    const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
     fillRoundRect(canvas, pill_x, pill_y, pill_w, pill_h, 2,
                   Theme::kPillBackground);
     canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
@@ -199,7 +224,8 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"ALT+ARROWS", "MOVE CENTER", Theme::kAccent},
         {"ENTER/SPACE", "ZOOM IN / OUT", Theme::kAccent},
         {"R / 0", "RESET / FIT", Theme::kAccent},
-        {"W", "WIRE / SOLID", 0xFE60},
+        {"7", "SOLID/EDGES/MATCAP", 0xFE60},
+        {"W", "WIREFRAME", 0xFE60},
         {"A", "AUTO ROTATE", 0xFE60},
         {"B / 8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},

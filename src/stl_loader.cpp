@@ -1,12 +1,15 @@
 #include "stl_loader.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <sstream>
+#include <utility>
 
 namespace {
 
@@ -145,6 +148,74 @@ void computeNormals(Mesh& mesh) {
     }
 }
 
+void computeTopology(Mesh& mesh) {
+    struct EdgeFaces {
+        uint32_t f0 = 0xFFFFFFFFu;
+        uint32_t f1 = 0xFFFFFFFFu;
+        int count = 0;
+    };
+
+    constexpr float kQuantize = 100000.0f;
+    std::map<std::array<int, 3>, uint32_t> ids;
+    std::vector<uint32_t> corner(mesh.vertices.size());
+    mesh.welded_vertices.clear();
+    mesh.edges.clear();
+
+    for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+        const Vec3& v = mesh.vertices[i];
+        const std::array<int, 3> key = {
+            static_cast<int>(std::lround(v.x * kQuantize)),
+            static_cast<int>(std::lround(v.y * kQuantize)),
+            static_cast<int>(std::lround(v.z * kQuantize))};
+        auto found = ids.find(key);
+        if (found == ids.end()) {
+            const uint32_t id = static_cast<uint32_t>(mesh.welded_vertices.size());
+            ids.emplace(key, id);
+            mesh.welded_vertices.push_back(v);
+            corner[i] = id;
+        } else {
+            corner[i] = found->second;
+        }
+    }
+
+    std::map<std::pair<uint32_t, uint32_t>, EdgeFaces> edges;
+    auto add_edge = [&](uint32_t a, uint32_t b, uint32_t face) {
+        if (a > b) std::swap(a, b);
+        EdgeFaces& info = edges[{a, b}];
+        if (info.count == 0) {
+            info.f0 = face;
+        } else if (info.count == 1) {
+            info.f1 = face;
+        }
+        ++info.count;
+    };
+
+    for (size_t t = 0; t < mesh.triangleCount(); ++t) {
+        const uint32_t a = corner[t * 3];
+        const uint32_t b = corner[t * 3 + 1];
+        const uint32_t c = corner[t * 3 + 2];
+        add_edge(a, b, static_cast<uint32_t>(t));
+        add_edge(b, c, static_cast<uint32_t>(t));
+        add_edge(c, a, static_cast<uint32_t>(t));
+    }
+
+    // 40 degrees: flat panel borders and sharp creases, but not the small
+    // angle between adjacent facets of a smooth sphere.
+    constexpr float kCosLimit = 0.7660f;
+    for (const auto& item : edges) {
+        const EdgeFaces& info = item.second;
+        bool feature = info.count != 2;
+        if (!feature) {
+            const Vec3& n1 = mesh.normals[info.f0];
+            const Vec3& n2 = mesh.normals[info.f1];
+            const float dot = n1.x * n2.x + n1.y * n2.y + n1.z * n2.z;
+            feature = dot < kCosLimit;
+        }
+        mesh.edges.push_back({item.first.first, item.first.second, info.f0,
+                              info.f1, feature});
+    }
+}
+
 void normalize(Mesh& mesh) {
     mesh.min = {1e30f, 1e30f, 1e30f};
     mesh.max = {-1e30f, -1e30f, -1e30f};
@@ -243,5 +314,6 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error) {
     fixWinding(mesh.vertices);
     normalize(mesh);
     computeNormals(mesh);
+    computeTopology(mesh);
     return true;
 }

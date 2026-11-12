@@ -10,8 +10,10 @@
   wireframe 12.6 ms/frame (~79 fps); interactive rendering is paced at ~60 fps
 - M3 complete: in-app file browser, remembered last directory, file sizes,
   loading frame and load-error messages
-- M4 next: decimation for oversized models, optional matcap shading, quality
-  modes, and final AppStore packaging assets
+- M4 in progress: EDGES (feature + silhouette lines), MATCAP shading and a
+  render-style pill; decimation, quality modes and packaging assets remain
+- Device measurement (23,776 triangles): edges 17.8 ms/frame (~56 fps),
+  matcap 10.1 ms/frame (~99 fps)
 
 ## Scope
 
@@ -89,8 +91,10 @@ The renderer has no dependency on the UI or on APPLaunch.
   crosshair marks the orbit point
 - Flat shading by default; STL is faceted anyway and it is the cheapest mode
 - Two-sided shading (`abs(dot)`) tolerates inconsistent STL normals
-- Matcap (32x32 normal lookup) as an optional nicer shading mode
-- Ordered 4x4 dithering to hide RGB565 banding
+- EDGES: flat fill plus dark crease lines (40 degree threshold) and a bright
+  depth-tested silhouette
+- MATCAP: 32x32 normal lookup with a specular highlight and rim term
+- Ordered 4x4 dithering is a future option to hide RGB565 banding
 - Quality modes: native 320x170, or 160x85 rendered and scaled 2x
 - Render on demand: skip frames when the view is static and auto-rotate is off
 
@@ -133,7 +137,8 @@ Enter        zoom in
 Space        zoom out
 R            reset view and center
 0            fit to screen and recenter
-W            wireframe / solid
+7            cycle solid / edges / matcap
+W            toggle pure wireframe
 A            auto-rotate
 B / 8        open the file list (8 is under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
@@ -143,11 +148,12 @@ The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
 
-The bottom bar has a small light-blue pill button labeled `files`, centered at
-x=273 so it lines up with the physical `8` key. Both `8` and `B` open the file
-browser.
+The bottom bar has two light-blue pills: a render-style button at x=217
+(`solid`, `edges`, `matcap` or `wire`) lined up with the `7` key, and a
+`files` button at x=273 lined up with the `8` key. Both `8` and `B` open the
+file browser.
 
-Status bar: file name, triangle count, fps, quality mode. The help overlay is
+Status bar: file name, triangle count, fps. The help overlay is
 a rounded, shadowed panel; keys are color-coded by group (cyan for view
 movement, amber for display/file actions, red for exit).
 

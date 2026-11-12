@@ -36,6 +36,58 @@ inline uint16_t shade(uint16_t base, float intensity) {
 
 }  // namespace
 
+Renderer::Renderer() { buildMatcap(); }
+
+void Renderer::buildMatcap() {
+    constexpr float light_x = -0.40f;
+    constexpr float light_y = 0.50f;
+    constexpr float light_z = 0.76f;
+    constexpr float half_x = -0.213f;
+    constexpr float half_y = 0.267f;
+    constexpr float half_z = 0.940f;
+
+    for (int y = 0; y < 32; ++y) {
+        const float ny = (y + 0.5f) / 32.0f * 2.0f - 1.0f;
+        for (int x = 0; x < 32; ++x) {
+            const float nx = (x + 0.5f) / 32.0f * 2.0f - 1.0f;
+            const float radius2 = nx * nx + ny * ny;
+
+            uint16_t color = 0;
+            if (radius2 < 1.0f) {
+                const float nz = std::sqrt(1.0f - radius2);
+                const float diffuse =
+                    std::max(0.0f, nx * light_x + ny * light_y +
+                                       nz * light_z);
+                const float specular = std::pow(
+                    std::max(0.0f, nx * half_x + ny * half_y + nz * half_z),
+                    26.0f);
+                const float rim = std::pow(1.0f - nz, 3.0f);
+
+                const float r = 18.0f + 100.0f * diffuse +
+                                160.0f * specular + 25.0f * rim;
+                const float g = 45.0f + 145.0f * diffuse +
+                                160.0f * specular + 35.0f * rim;
+                const float b = 65.0f + 150.0f * diffuse +
+                                155.0f * specular + 45.0f * rim;
+                const auto to_byte = [](float value) {
+                    return static_cast<uint8_t>(
+                        std::max(0.0f, std::min(255.0f, value)));
+                };
+                color = rgb565(to_byte(r), to_byte(g), to_byte(b));
+            }
+            matcap_[y * 32 + x] = color;
+        }
+    }
+}
+
+uint16_t Renderer::matcapColor(float nx, float ny) const {
+    const int x = std::max(
+        0, std::min(31, static_cast<int>((nx + 1.0f) * 15.5f)));
+    const int y = std::max(
+        0, std::min(31, static_cast<int>((ny + 1.0f) * 15.5f)));
+    return matcap_[y * 32 + x];
+}
+
 void Renderer::project(const Mesh& mesh, const Camera& camera,
                        const Rect& viewport) {
     const size_t vertex_count = mesh.vertices.size();
@@ -116,7 +168,7 @@ void Renderer::renderWireframe(Canvas& canvas, const Rect& viewport) {
 
 void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
                            const Rect& viewport, float cp, float sp,
-                           float cy, float sy) {
+                           float cy, float sy, bool matcap) {
     const size_t pixel_count =
         static_cast<size_t>(canvas.width()) * canvas.height();
     zbuffer_.resize(pixel_count);
@@ -164,10 +216,15 @@ void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
         const float nx = normal.x * cy + nz1 * sy;
         const float nz = -normal.x * sy + nz1 * cy;
 
-        const float diffuse =
-            std::fabs(nx * kLightX + ny * kLightY + nz * kLightZ);
-        const float intensity = kAmbient + kDiffuse * diffuse;
-        const uint16_t color = shade(kBaseColor, intensity);
+        uint16_t color = 0;
+        if (matcap) {
+            color = matcapColor(nx, ny);
+        } else {
+            const float diffuse =
+                std::fabs(nx * kLightX + ny * kLightY + nz * kLightZ);
+            const float intensity = kAmbient + kDiffuse * diffuse;
+            color = shade(kBaseColor, intensity);
+        }
 
         const float inv_area = 1.0f / area;
         for (int y = by0; y <= by1; ++y) {
@@ -194,6 +251,141 @@ void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
     }
 }
 
+void Renderer::renderFeatureEdges(const Mesh& mesh, const Camera& camera,
+                                  Canvas& canvas, const Rect& viewport,
+                                  float cp, float sp, float cy, float sy) {
+    const auto& vertices = mesh.welded_vertices;
+    if (vertices.empty() || mesh.edges.empty() || zbuffer_.empty()) return;
+
+    const float base_scale =
+        0.5f * static_cast<float>(std::min(viewport.w, viewport.h)) * 0.92f;
+    const float scale = base_scale * camera.zoom;
+    const float center_x = viewport.x + viewport.w * 0.5f;
+    const float center_y = viewport.y + viewport.h * 0.5f;
+
+    edge_screen_x_.resize(vertices.size());
+    edge_screen_y_.resize(vertices.size());
+    edge_depth_.resize(vertices.size());
+
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        const Vec3& v = vertices[i];
+        const float vx = v.x - camera.pivot_x;
+        const float vy = v.y - camera.pivot_y;
+        const float vz = v.z - camera.pivot_z;
+
+        const float y1 = vy * cp - vz * sp;
+        const float z1 = vy * sp + vz * cp;
+        const float x2 = vx * cy + z1 * sy;
+        const float z2 = -vx * sy + z1 * cy;
+
+        edge_screen_x_[i] = center_x + x2 * scale;
+        edge_screen_y_[i] = center_y - y1 * scale;
+        edge_depth_[i] = z2;
+    }
+
+    // Camera-space normal Z, used to detect silhouette edges.
+    std::vector<float> normal_z(mesh.triangleCount());
+    for (size_t i = 0; i < mesh.triangleCount(); ++i) {
+        const Vec3& n = mesh.normals[i];
+        const float nz1 = n.y * sp + n.z * cp;
+        normal_z[i] = -n.x * sy + nz1 * cy;
+    }
+
+    const int min_x = viewport.x;
+    const int min_y = viewport.y;
+    const int max_x = viewport.x + viewport.w - 1;
+    const int max_y = viewport.y + viewport.h - 1;
+    const int canvas_width = canvas.width();
+    constexpr uint16_t kCreaseColor = 0x0210;      // dark navy
+    constexpr uint16_t kSilhouetteColor = 0x9EFF;  // light cyan
+    constexpr float kDepthBias = 0.02f;
+
+    for (const MeshEdge& edge : mesh.edges) {
+        if (edge.a >= vertices.size() || edge.b >= vertices.size()) continue;
+
+        bool silhouette = edge.f1 == 0xFFFFFFFFu;
+        if (!silhouette) {
+            const bool front0 = normal_z[edge.f0] > 0.0f;
+            const bool front1 = normal_z[edge.f1] > 0.0f;
+            silhouette = front0 != front1;
+        }
+        if (!edge.feature && !silhouette) continue;
+
+        const uint16_t edge_color =
+            silhouette ? kSilhouetteColor : kCreaseColor;
+
+        const float x0 = edge_screen_x_[edge.a];
+        const float y0 = edge_screen_y_[edge.a];
+        const float z0 = edge_depth_[edge.a];
+        const float x1 = edge_screen_x_[edge.b];
+        const float y1 = edge_screen_y_[edge.b];
+        const float z1 = edge_depth_[edge.b];
+        const float dx = x1 - x0;
+        const float dy = y1 - y0;
+
+        float t0 = 0.0f;
+        float t1 = 1.0f;
+        auto clip = [&](float p, float q) {
+            if (p == 0.0f) return q >= 0.0f;
+            const float r = q / p;
+            if (p < 0.0f) {
+                if (r > t1) return false;
+                if (r > t0) t0 = r;
+            } else {
+                if (r < t0) return false;
+                if (r < t1) t1 = r;
+            }
+            return true;
+        };
+
+        if (!clip(-dx, x0 - min_x) ||
+            !clip(dx, max_x - x0) ||
+            !clip(-dy, y0 - min_y) ||
+            !clip(dy, max_y - y0)) {
+            continue;
+        }
+
+        const float cx0 = x0 + t0 * dx;
+        const float cy0 = y0 + t0 * dy;
+        const float cx1 = x0 + t1 * dx;
+        const float cy1 = y0 + t1 * dy;
+        const float cz0 = z0 + t0 * (z1 - z0);
+        const float cz1 = z0 + t1 * (z1 - z0);
+
+        const int ix0 = static_cast<int>(std::lround(cx0));
+        const int iy0 = static_cast<int>(std::lround(cy0));
+        const int ix1 = static_cast<int>(std::lround(cx1));
+        const int iy1 = static_cast<int>(std::lround(cy1));
+        const int steps =
+            std::max(std::abs(ix1 - ix0), std::abs(iy1 - iy0));
+        if (steps == 0) {
+            const size_t index =
+                static_cast<size_t>(iy0) * canvas_width + ix0;
+            if (cz0 + kDepthBias >= zbuffer_[index]) {
+                canvas.pixel(ix0, iy0, edge_color);
+            }
+            continue;
+        }
+
+        for (int s = 0; s <= steps; ++s) {
+            const float t = static_cast<float>(s) / steps;
+            const int px = static_cast<int>(
+                std::lround(ix0 + (ix1 - ix0) * t));
+            const int py = static_cast<int>(
+                std::lround(iy0 + (iy1 - iy0) * t));
+            if (px < min_x || px > max_x || py < min_y || py > max_y) {
+                continue;
+            }
+            const float z = cz0 + (cz1 - cz0) * t;
+            const size_t index =
+                static_cast<size_t>(py) * canvas_width + px;
+            if (z + kDepthBias >= zbuffer_[index]) {
+                canvas.pixel(px, py, edge_color);
+            }
+        }
+    }
+}
+
 void Renderer::render(const Mesh& mesh, const Camera& camera,
                       Canvas& canvas, const Rect& viewport,
                       RenderMode mode) {
@@ -209,6 +401,14 @@ void Renderer::render(const Mesh& mesh, const Camera& camera,
 
     const float yaw = camera.yaw_deg * kDegToRad;
     const float pitch = camera.pitch_deg * kDegToRad;
-    renderSolid(mesh, canvas, viewport, std::cos(pitch), std::sin(pitch),
-                std::cos(yaw), std::sin(yaw));
+    const float cp = std::cos(pitch);
+    const float sp = std::sin(pitch);
+    const float cy = std::cos(yaw);
+    const float sy = std::sin(yaw);
+
+    renderSolid(mesh, canvas, viewport, cp, sp, cy, sy,
+                mode == RenderMode::Matcap);
+    if (mode == RenderMode::Edges) {
+        renderFeatureEdges(mesh, camera, canvas, viewport, cp, sp, cy, sy);
+    }
 }

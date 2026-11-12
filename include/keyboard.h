@@ -20,6 +20,7 @@ enum class Key {
     Help,
     Shot,
     Files,
+    Style,
     Back,
     Esc,
 };
