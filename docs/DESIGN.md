@@ -145,10 +145,6 @@ and over the UI overlays.
 
 Status bar: file name, triangle count, fps, quality mode.
 
-The viewer top status bar and the whole file browser use white backgrounds with
-black text. The viewer hint bar, help overlay, loading state and exit prompt
-stay dark. The 3D viewport stays dark so the model keeps contrast.
-
 File browser:
 
 ```text

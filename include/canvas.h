@@ -56,15 +56,6 @@ constexpr uint16_t kOverlayBackground = 0x0841;
 constexpr uint16_t kOverlayBorder = 0x4FDF;
 constexpr uint16_t kWireNear = 0x4FDF;    // bright cyan
 constexpr uint16_t kWireFar = 0x1A69;     // dark teal
-
-// Light UI chrome for readability.
-constexpr uint16_t kLightPanel = 0xFFFF;      // white
-constexpr uint16_t kTextOnLight = 0x0000;     // black
-constexpr uint16_t kSubtleOnLight = 0x4208;   // dark grey
-constexpr uint16_t kBorderOnLight = 0x8410;   // mid grey
-constexpr uint16_t kAccentOnLight = 0x032F;   // dark teal
-constexpr uint16_t kErrorOnLight = 0xC000;    // dark red
-constexpr uint16_t kDimOnDark = 0xCE79;       // light grey
 }  // namespace Theme
 
 #endif  // STLVIEWER_CANVAS_H

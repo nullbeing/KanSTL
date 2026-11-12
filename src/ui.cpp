@@ -84,12 +84,12 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int h = canvas.height();
 
     // Top status bar.
-    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kLightPanel);
-    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBorderOnLight);
+    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
+    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBarBorder);
 
     const std::string name =
         state.mesh ? truncate(state.mesh->name, 30) : std::string("(no model)");
-    canvas.text(kTextLeft, kTextTop, name, Theme::kTextOnLight);
+    canvas.text(kTextLeft, kTextTop, name, Theme::kTextBright);
 
     char info[32];
     if (state.fps > 0) {
@@ -102,7 +102,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
                       triangleText(state.mesh ? state.mesh->triangleCount() : 0)
                           .c_str());
     }
-    drawTextRight(canvas, w - 4, kTextTop, info, Theme::kSubtleOnLight);
+    drawTextRight(canvas, w - 4, kTextTop, info, Theme::kText);
 
     // Bottom hint bar.
     const int hint_y = h - kHintHeight;
@@ -123,8 +123,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
                   custom_pivot ? "  CENTER" : "");
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
-    drawTextRight(canvas, w - 4, hint_y + kTextTop, "B FILES",
-                  Theme::kTextDim);
+    drawTextRight(canvas, w - 4, hint_y + kTextTop, "B FILES", Theme::kTextDim);
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
@@ -146,7 +145,6 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int py = (h - panel_h) / 2;
     canvas.fillRect(px, py, panel_w, panel_h, Theme::kOverlayBackground);
     canvas.rect(px, py, panel_w, panel_h, Theme::kOverlayBorder);
-    canvas.fillRect(px + 8, py + 16, panel_w - 16, 1, Theme::kBarBorder);
     canvas.text(px + 8, py + 6, "STL VIEWER", Theme::kAccent);
 
     static const char* lines[] = {
@@ -163,7 +161,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "H         CLOSE HELP",
         "HOLD ESC  3S TO EXIT",
     };
-    int y = py + 22;
+    int y = py + 20;
     for (const char* line : lines) {
         canvas.text(px + 8, y, line, Theme::kText);
         y += 10;
@@ -174,11 +172,11 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     const int w = canvas.width();
     const int h = canvas.height();
     const auto& entries = browser.entries();
-    canvas.clear(Theme::kLightPanel);
+    canvas.clear(Theme::kBackground);
 
     // Top bar: current directory and item count.
-    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kLightPanel);
-    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBorderOnLight);
+    canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
+    canvas.fillRect(0, kStatusHeight - 1, w, 1, Theme::kBarBorder);
 
     int item_count = static_cast<int>(entries.size());
     if (item_count > 0 && entries.front().name == "..") --item_count;
@@ -186,9 +184,8 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     std::snprintf(count_text, sizeof(count_text), "%d ITEMS", item_count);
 
     canvas.text(kTextLeft, kTextTop, displayPath(browser.directory()),
-                Theme::kTextOnLight);
-    drawTextRight(canvas, w - 4, kTextTop, count_text,
-                  Theme::kSubtleOnLight);
+                Theme::kTextBright);
+    drawTextRight(canvas, w - 4, kTextTop, count_text, Theme::kText);
 
     // Rows.
     const int list_top = kStatusHeight;
@@ -201,24 +198,19 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         const bool selected = index == browser.selection();
 
         if (selected) {
-            canvas.fillRect(0, y, w, kRowHeight, Theme::kAccentOnLight);
-            canvas.text(3, y + 2, ">", Theme::kLightPanel);
+            canvas.fillRect(0, y, w, kRowHeight, 0x2945);
+            canvas.text(3, y + 2, ">", Theme::kAccent);
         }
 
         std::string name = entry.name;
         if (entry.is_directory && name != "..") name += "/";
 
-        const uint16_t name_color =
-            selected ? Theme::kLightPanel
-                     : (entry.is_directory ? Theme::kAccentOnLight
-                                           : Theme::kTextOnLight);
-        canvas.text(12, y + 2, truncate(name, 39), name_color);
+        canvas.text(12, y + 2, truncate(name, 39),
+                    entry.is_directory ? Theme::kAccent : Theme::kTextBright);
 
         const std::string right =
             entry.is_directory ? std::string("DIR") : humanSize(entry.size);
-        drawTextRight(canvas, w - 4, y + 2, right,
-                      selected ? Theme::kDimOnDark
-                               : Theme::kSubtleOnLight);
+        drawTextRight(canvas, w - 4, y + 2, right, Theme::kTextDim);
     }
 
     bool has_files = false;
@@ -231,22 +223,22 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     if (!has_files) {
         const std::string empty = "NO .STL IN THIS FOLDER";
         canvas.text((w - canvas.textWidth(empty)) / 2, 78, empty,
-                    Theme::kSubtleOnLight);
+                    Theme::kTextDim);
     }
 
     // Bottom bar: error message or key hints.
     const int hint_y = h - kHintHeight;
-    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kLightPanel);
-    canvas.fillRect(0, hint_y, w, 1, Theme::kBorderOnLight);
+    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
+    canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
 
     if (!browser.error().empty()) {
         canvas.text(kTextLeft, hint_y + kTextTop,
-                    truncate(browser.error(), 52), Theme::kErrorOnLight);
+                    truncate(browser.error(), 52), 0xF800);
     } else {
         canvas.text(kTextLeft, hint_y + kTextTop,
-                    "ENT OPEN  <- UP  R REFRESH", Theme::kTextOnLight);
+                    "ENT OPEN  <- UP  R REFRESH", Theme::kText);
         drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD 3S EXIT",
-                      Theme::kSubtleOnLight);
+                      Theme::kTextDim);
     }
 }
 
