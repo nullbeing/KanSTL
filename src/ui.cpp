@@ -260,16 +260,9 @@ void drawLoading(Canvas& canvas, const std::string& filename) {
 
 void drawAxisGizmo(Canvas& canvas, const Camera& camera,
                    const Rect& viewport) {
-    const int panel = 34;
-    const int px = viewport.x + viewport.w - panel - 4;
-    const int py = viewport.y + 4;
-    if (px < viewport.x || py < viewport.y) return;
-
-    canvas.fillRect(px, py, panel, panel, Theme::kBackground);
-    canvas.rect(px, py, panel, panel, Theme::kBarBorder);
-
-    const int ox = px + panel / 2;
-    const int oy = py + panel / 2;
+    const int ox = viewport.x + viewport.w - 28;
+    const int oy = viewport.y + 30;
+    const float scale = 20.0f;
 
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
@@ -277,7 +270,6 @@ void drawAxisGizmo(Canvas& canvas, const Camera& camera,
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
-    const float scale = 12.0f;
 
     auto axis = [&](float ax, float ay, float az, uint16_t color) {
         const float y1 = ay * cp - az * sp;
@@ -286,7 +278,6 @@ void drawAxisGizmo(Canvas& canvas, const Camera& camera,
         const int ex = ox + static_cast<int>(std::lround(x2 * scale));
         const int ey = oy - static_cast<int>(std::lround(y1 * scale));
         canvas.line(ox, oy, ex, ey, color);
-        canvas.fillRect(ex - 1, ey - 1, 3, 3, color);
     };
 
     axis(1.0f, 0.0f, 0.0f, 0xF800);  // X red

@@ -139,8 +139,9 @@ B            open the file list
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
 
-The viewer shows a compact red/green/blue XYZ orientation gizmo in the
-top-right corner of the 3D viewport.
+The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
+corner of the 3D viewport, with no frame or arrowheads, drawn above the model
+and over the UI overlays.
 
 Status bar: file name, triangle count, fps, quality mode.
 

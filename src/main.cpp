@@ -244,10 +244,7 @@ void renderFrame(Canvas& canvas, const Mesh& mesh, const Camera& camera,
         canvas.line(cx, cy - 4, cx, cy + 4, Theme::kAccent);
     }
 
-    if (!no_ui) {
-        drawAxisGizmo(canvas, camera, viewport);
-        drawUi(canvas, ui);
-    }
+    if (!no_ui) drawUi(canvas, ui);
 }
 
 bool isArrowKey(Key key) {
@@ -693,6 +690,10 @@ int runInteractive(const Options& options) {
                             wireframe ? RenderMode::Wireframe
                                       : RenderMode::Solid);
                 if (exit_prompt_visible) drawExitPrompt(canvas, exit_progress);
+                if (!options.no_ui) {
+                    drawAxisGizmo(canvas, camera,
+                                  activeViewport(canvas, options.no_ui));
+                }
                 framebuffer.present(canvas);
 
                 const auto render_end = std::chrono::steady_clock::now();
@@ -748,6 +749,10 @@ int runBenchmark(const Options& options, const Mesh& mesh) {
         if (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
         ui.camera = camera;
         renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui, mode);
+        if (!options.no_ui) {
+            drawAxisGizmo(canvas, camera,
+                          activeViewport(canvas, options.no_ui));
+        }
     }
     const double seconds =
         std::chrono::duration<double>(std::chrono::steady_clock::now() - start)
@@ -772,6 +777,9 @@ int renderScreenshot(const Options& options, Mesh& mesh) {
 
     renderFrame(canvas, mesh, camera, renderer, ui, options.no_ui,
                 options.wireframe ? RenderMode::Wireframe : RenderMode::Solid);
+    if (!options.no_ui) {
+        drawAxisGizmo(canvas, camera, activeViewport(canvas, options.no_ui));
+    }
 
     if (!saveCanvasPng(canvas, options.shot_path)) {
         std::fprintf(stderr, "stlviewer: failed to write %s\n",

@@ -22,7 +22,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Wireframe mode with depth-based shading (`W` toggles)
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
-- Small red/green/blue XYZ orientation gizmo in the top-right corner
+- Red/green/blue XYZ orientation gizmo in the top-right corner, drawn above
+  the model and overlays
 - `B` opens the file list; `Esc` is exit-only (hold 3 seconds)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
 - Offscreen PNG rendering for development without a device
