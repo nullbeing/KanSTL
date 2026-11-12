@@ -165,9 +165,16 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
 
     // Auto-rotate toggle aligned with the "6" key (x=161).
-    drawLabelPill(canvas, 161, pill_y, pill_h, "auto",
-                  state.auto_rotate ? Theme::kPillActive
-                                    : Theme::kPillBackground);
+    std::string auto_label = "auto";
+    if (state.auto_mode == AutoRotateMode::Horizontal) {
+        auto_label = "auto h";
+    } else if (state.auto_mode == AutoRotateMode::Vertical) {
+        auto_label = "auto v";
+    }
+    drawLabelPill(canvas, 161, pill_y, pill_h, auto_label,
+                  state.auto_mode == AutoRotateMode::Off
+                      ? Theme::kPillBackground
+                      : Theme::kPillActive);
 
     // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
@@ -223,7 +230,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"R / 0", "RESET / FIT", Theme::kAccent},
         {"7", "SOLID/EDGES/MATCAP", 0xFE60},
         {"W", "WIREFRAME", 0xFE60},
-        {"A / 6", "AUTO ROTATE", 0xFE60},
+        {"A / 6", "AUTO H / V", 0xFE60},
         {"B / 8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},
         {"H", "CLOSE HELP", Theme::kTextBright},
