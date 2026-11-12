@@ -60,30 +60,11 @@ void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
     }
 }
 
-void fillTab(Canvas& canvas, int x, int y, int w, int h, int radius,
-             uint16_t color) {
-    if (w <= 0 || h <= 0) return;
-    radius = std::max(0, std::min(radius, std::min(w / 2, h)));
-
-    for (int row = 0; row < h; ++row) {
-        int inset = 0;
-        if (row < radius) {
-            const float dy = radius - (row + 0.5f);
-            inset = radius - static_cast<int>(std::lround(
-                                 std::sqrt(radius * radius - dy * dy)));
-        }
-        const int row_width = w - 2 * inset;
-        if (row_width > 0) {
-            canvas.fillRect(x + inset, y + row, row_width, 1, color);
-        }
-    }
-}
-
-void drawLabelTab(Canvas& canvas, int center_x, int y, int height,
-                  const std::string& label) {
+void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
+                   const std::string& label) {
     const int width = canvas.textWidth(label) + 6;
     const int x = center_x - width / 2;
-    fillTab(canvas, x, y, width, height, 4, Theme::kPillBackground);
+    fillRoundRect(canvas, x, y, width, height, 2, Theme::kPillBackground);
     canvas.text(x + 3, y + (height - 8) / 2, label, Theme::kPillText);
 }
 
@@ -188,15 +169,15 @@ void drawUi(Canvas& canvas, const UiState& state) {
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
     const int pill_h = 10;
-    const int pill_y = hint_y + 2;
+    const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
 
-    // Render style tab aligned with the "7" key (x=217).
+    // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
         state.wireframe ? "wire" : styleName(state.style);
-    drawLabelTab(canvas, 217, pill_y, pill_h, style_label);
+    drawLabelPill(canvas, 217, pill_y, pill_h, style_label);
 
-    // Files tab aligned with the "8" key (x=273).
-    drawLabelTab(canvas, 273, pill_y, pill_h, "files");
+    // Files button aligned with the "8" key (x=273).
+    drawLabelPill(canvas, 273, pill_y, pill_h, "files");
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
