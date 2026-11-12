@@ -37,14 +37,22 @@ void drawTextRight(Canvas& canvas, int right_x, int y, const std::string& text,
     canvas.text(right_x - canvas.textWidth(text), y, text, color);
 }
 
-void fillPill(Canvas& canvas, int x, int y, int w, int h, uint16_t color) {
+void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
+                   uint16_t color) {
     if (w <= 0 || h <= 0) return;
-    const float half = h * 0.5f;
+    radius = std::max(0, std::min(radius, std::min(w / 2, h / 2)));
+
     for (int row = 0; row < h; ++row) {
-        const float dy = row + 0.5f - half;
-        const float span = std::sqrt(std::max(0.0f, half * half - dy * dy));
-        const int inset =
-            static_cast<int>(std::lround(half - span));
+        int inset = 0;
+        if (row < radius) {
+            const float dy = radius - (row + 0.5f);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        } else if (row >= h - radius) {
+            const float dy = (row + 0.5f) - (h - radius);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        }
         const int row_width = w - 2 * inset;
         if (row_width > 0) {
             canvas.fillRect(x + inset, y + row, row_width, 1, color);
@@ -144,8 +152,8 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int pill_h = 10;
     const int pill_x = 273 - pill_w / 2;
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
-    fillPill(canvas, pill_x, pill_y, pill_w, pill_h,
-             Theme::kPillBackground);
+    fillRoundRect(canvas, pill_x, pill_y, pill_w, pill_h, 4,
+                  Theme::kPillBackground);
     canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
                 pill_y + (pill_h - 8) / 2, files_label, Theme::kPillText);
 
