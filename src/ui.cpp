@@ -89,7 +89,7 @@ void drawSoftShadow(Canvas& canvas, int px, int py, int w, int h,
         float alpha;
     };
     static const Layer layers[] = {
-        {4, 0.06f}, {3, 0.10f}, {2, 0.14f}, {1, 0.18f}};
+        {5, 0.12f}, {4, 0.18f}, {3, 0.24f}, {2, 0.30f}, {1, 0.36f}};
     for (const Layer& layer : layers) {
         fillRoundRectBlend(canvas, px + layer.offset, py + layer.offset, w, h,
                            radius, Theme::kDialogShadow, layer.alpha);
