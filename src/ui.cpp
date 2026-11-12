@@ -61,10 +61,10 @@ void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
 }
 
 void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
-                   const std::string& label) {
+                   const std::string& label, uint16_t background) {
     const int width = canvas.textWidth(label) + 6;
     const int x = center_x - width / 2;
-    fillRoundRect(canvas, x, y, width, height, 2, Theme::kPillBackground);
+    fillRoundRect(canvas, x, y, width, height, 2, background);
     canvas.text(x + 3, y + (height - 8) / 2, label, Theme::kPillText);
 }
 
@@ -165,16 +165,19 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
 
     // Auto-rotate toggle aligned with the "6" key (x=161).
-    drawLabelPill(canvas, 161, pill_y, pill_h,
-                  state.auto_rotate ? "auto on" : "auto off");
+    drawLabelPill(canvas, 161, pill_y, pill_h, "auto",
+                  state.auto_rotate ? Theme::kPillActive
+                                    : Theme::kPillBackground);
 
     // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
         state.wireframe ? "wire" : styleName(state.style);
-    drawLabelPill(canvas, 217, pill_y, pill_h, style_label);
+    drawLabelPill(canvas, 217, pill_y, pill_h, style_label,
+                  Theme::kPillBackground);
 
     // Files button aligned with the "8" key (x=273).
-    drawLabelPill(canvas, 273, pill_y, pill_h, "files");
+    drawLabelPill(canvas, 273, pill_y, pill_h, "files",
+                  Theme::kPillBackground);
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
