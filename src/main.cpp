@@ -81,7 +81,7 @@ void printUsage(const char* argv0) {
         "Viewer keys:\n"
         "  Arrows rotate, Alt+arrows move the rotation center,\n"
         "  Enter/Space zoom, R reset, 0 fit, W wire/solid,\n"
-        "  B file list, A auto-rotate, S screenshot, H help,\n"
+        "  B file list, A/6 auto-rotate, S screenshot, H help,\n"
         "  hold Esc 3s to exit.\n"
         "\n"
         "Browser keys:\n"

@@ -154,22 +154,19 @@ void drawUi(Canvas& canvas, const UiState& state) {
     canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
     canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
 
-    const bool custom_pivot =
-        std::fabs(state.camera.pivot_x) > 1e-4f ||
-        std::fabs(state.camera.pivot_y) > 1e-4f ||
-        std::fabs(state.camera.pivot_z) > 1e-4f;
-
     char view[80];
-    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f%s%s",
+    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f",
                   static_cast<int>(state.camera.yaw_deg),
                   static_cast<int>(state.camera.pitch_deg),
-                  state.camera.zoom,
-                  state.auto_rotate ? " AUTO" : "",
-                  custom_pivot ? " CENTER" : "");
+                  state.camera.zoom);
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
     const int pill_h = 10;
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
+
+    // Auto-rotate toggle aligned with the "6" key (x=161).
+    drawLabelPill(canvas, 161, pill_y, pill_h,
+                  state.auto_rotate ? "auto on" : "auto off");
 
     // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
@@ -223,7 +220,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"R / 0", "RESET / FIT", Theme::kAccent},
         {"7", "SOLID/EDGES/MATCAP", 0xFE60},
         {"W", "WIREFRAME", 0xFE60},
-        {"A", "AUTO ROTATE", 0xFE60},
+        {"A / 6", "AUTO ROTATE", 0xFE60},
         {"B / 8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},
         {"H", "CLOSE HELP", Theme::kTextBright},

@@ -91,6 +91,8 @@ Key translate(int code) {
             return Key::Fit;
         case KEY_8:
             return Key::Files;
+        case KEY_6:
+            return Key::Auto;
         case KEY_7:
             return Key::Style;
         case KEY_W:
