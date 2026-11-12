@@ -64,6 +64,7 @@ constexpr uint16_t kSubtleOnLight = 0x4208;   // dark grey
 constexpr uint16_t kBorderOnLight = 0x8410;   // mid grey
 constexpr uint16_t kAccentOnLight = 0x032F;   // dark teal
 constexpr uint16_t kErrorOnLight = 0xC000;    // dark red
+constexpr uint16_t kDimOnDark = 0xCE79;       // light grey
 }  // namespace Theme
 
 #endif  // STLVIEWER_CANVAS_H

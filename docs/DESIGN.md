@@ -145,9 +145,9 @@ and over the UI overlays.
 
 Status bar: file name, triangle count, fps, quality mode.
 
-UI chrome uses white panels with black text for readability: status and hint
-bars, the help overlay, browser header/footer, loading panel and exit prompt.
-The 3D viewport stays dark so the model keeps contrast.
+The viewer top status bar and the whole file browser use white backgrounds with
+black text. The viewer hint bar, help overlay, loading state and exit prompt
+stay dark. The 3D viewport stays dark so the model keeps contrast.
 
 File browser:
 
