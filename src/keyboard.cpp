@@ -89,6 +89,8 @@ Key translate(int code) {
             return Key::Space;
         case KEY_0:
             return Key::Fit;
+        case KEY_8:
+            return Key::Files;
         case KEY_W:
             return Key::Wire;
         case KEY_H:

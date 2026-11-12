@@ -135,13 +135,17 @@ R            reset view and center
 0            fit to screen and recenter
 W            wireframe / solid
 A            auto-rotate
-B            open the file list
+B / 8        open the file list (8 is under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
 
 The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
+
+The bottom bar has a small white pill button labeled `files`, centered at
+x=273 so it lines up with the physical `8` key. Both `8` and `B` open the file
+browser.
 
 Status bar: file name, triangle count, fps, quality mode.
 

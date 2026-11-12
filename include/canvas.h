@@ -56,6 +56,8 @@ constexpr uint16_t kOverlayBackground = 0x0841;
 constexpr uint16_t kOverlayBorder = 0x4FDF;
 constexpr uint16_t kWireNear = 0x4FDF;    // bright cyan
 constexpr uint16_t kWireFar = 0x1A69;     // dark teal
+constexpr uint16_t kPillBackground = 0xFFFF;  // white
+constexpr uint16_t kPillText = 0x0000;        // black
 }  // namespace Theme
 
 #endif  // STLVIEWER_CANVAS_H

@@ -37,6 +37,21 @@ void drawTextRight(Canvas& canvas, int right_x, int y, const std::string& text,
     canvas.text(right_x - canvas.textWidth(text), y, text, color);
 }
 
+void fillPill(Canvas& canvas, int x, int y, int w, int h, uint16_t color) {
+    if (w <= 0 || h <= 0) return;
+    const float half = h * 0.5f;
+    for (int row = 0; row < h; ++row) {
+        const float dy = row + 0.5f - half;
+        const float span = std::sqrt(std::max(0.0f, half * half - dy * dy));
+        const int inset =
+            static_cast<int>(std::lround(half - span));
+        const int row_width = w - 2 * inset;
+        if (row_width > 0) {
+            canvas.fillRect(x + inset, y + row, row_width, 1, color);
+        }
+    }
+}
+
 std::string humanSize(uint64_t bytes) {
     char buf[24];
     if (bytes >= 1024ULL * 1024ULL) {
@@ -115,15 +130,23 @@ void drawUi(Canvas& canvas, const UiState& state) {
         std::fabs(state.camera.pivot_z) > 1e-4f;
 
     char view[80];
-    std::snprintf(view, sizeof(view), "Y %+d  P %+d  Z %.2f  %s%s%s",
+    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f %s%s%s",
                   static_cast<int>(state.camera.yaw_deg),
                   static_cast<int>(state.camera.pitch_deg),
                   state.camera.zoom, state.wireframe ? "WIRE" : "SOLID",
-                  state.auto_rotate ? "  AUTO" : "",
-                  custom_pivot ? "  CENTER" : "");
+                  state.auto_rotate ? " AUTO" : "",
+                  custom_pivot ? " CENTER" : "");
     canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
 
-    drawTextRight(canvas, w - 4, hint_y + kTextTop, "B FILES", Theme::kTextDim);
+    // Pill button aligned with the "8" key (official x=273 on this panel).
+    const std::string files_label = "files";
+    const int pill_w = 44;
+    const int pill_h = kHintHeight;
+    const int pill_x = 273 - pill_w / 2;
+    fillPill(canvas, pill_x, hint_y, pill_w, pill_h,
+             Theme::kPillBackground);
+    canvas.text(pill_x + (pill_w - canvas.textWidth(files_label)) / 2,
+                hint_y + kTextTop, files_label, Theme::kPillText);
 
     // Transient toast (screenshot saved, etc.).
     if (!state.toast.empty()) {
@@ -156,7 +179,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         "0         FIT TO SCREEN",
         "W         WIRE / SOLID",
         "A         AUTO ROTATE",
-        "B         OPEN FILE LIST",
+        "B / 8     OPEN FILE LIST",
         "S         SCREENSHOT",
         "H         CLOSE HELP",
         "HOLD ESC  3S TO EXIT",
