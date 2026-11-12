@@ -323,11 +323,17 @@ void drawExitPrompt(Canvas& canvas, float progress) {
     const int h = canvas.height();
     const int panel_w = 214;
     const int panel_h = 36;
+    const int radius = 6;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
 
-    canvas.fillRect(px, py, panel_w, panel_h, Theme::kBarBackground);
-    canvas.rect(px, py, panel_w, panel_h, Theme::kTextDim);
+    // Drop shadow, rounded border and raised panel.
+    fillRoundRect(canvas, px + 3, py + 3, panel_w, panel_h, radius,
+                  Theme::kDialogShadow);
+    fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
+                  Theme::kDialogBorder);
+    fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
+                  radius - 1, Theme::kDialogBackground);
 
     const std::string title = "HOLD ESC 3S TO EXIT";
     canvas.text((w - canvas.textWidth(title)) / 2, py + 6, title,

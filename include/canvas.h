@@ -58,6 +58,9 @@ constexpr uint16_t kWireNear = 0x4FDF;    // bright cyan
 constexpr uint16_t kWireFar = 0x1A69;     // dark teal
 constexpr uint16_t kPillBackground = 0xFFFF;  // white
 constexpr uint16_t kPillText = 0x0000;        // black
+constexpr uint16_t kDialogShadow = 0x0000;    // black drop shadow
+constexpr uint16_t kDialogBackground = 0x18C3;  // raised dark slate
+constexpr uint16_t kDialogBorder = 0x4A69;    // soft border
 }  // namespace Theme
 
 #endif  // STLVIEWER_CANVAS_H
