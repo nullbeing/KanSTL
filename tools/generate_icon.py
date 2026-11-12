@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Generate the STL Viewer app icon: a triangulated isometric cube."""
 
+import math
+
 from PIL import Image, ImageDraw, ImageFilter
 
 S = 1024
@@ -82,13 +84,39 @@ def main():
         draw.line(list(quad) + [quad[0]], fill=outer, width=11,
                   joint="curve")
 
-    # Small orange facet marker on the front face for a bit of contrast.
-    px = (cx - 55, cy + 90)
-    pz = (cx + 65, cy + 55)
-    py = (cx - 30, cy + 155)
-    draw.polygon([px, pz, py], fill=(232, 148, 52))
-    draw.line([px, pz, py, px], fill=(255, 196, 96), width=7,
-              joint="curve")
+    # Gear on the front face.
+    gear_cx, gear_cy = cx, cy
+    r_out, r_root, teeth = 138, 100, 8
+    step = 2.0 * math.pi / teeth
+    gear = []
+    for i in range(teeth):
+        base = i * step + math.pi / 8.0
+        gear.append((gear_cx + r_root * math.cos(base),
+                     gear_cy + r_root * math.sin(base)))
+        gear.append((gear_cx + r_out * math.cos(base + step * 0.14),
+                     gear_cy + r_out * math.sin(base + step * 0.14)))
+        gear.append((gear_cx + r_out * math.cos(base + step * 0.36),
+                     gear_cy + r_out * math.sin(base + step * 0.36)))
+        gear.append((gear_cx + r_root * math.cos(base + step * 0.50),
+                     gear_cy + r_root * math.sin(base + step * 0.50)))
+
+    draw.polygon(gear, fill=(8, 38, 54))
+    draw.line(gear + [gear[0]], fill=outer, width=10, joint="curve")
+
+    hole = 42
+    draw.ellipse([gear_cx - hole, gear_cy - hole,
+                  gear_cx + hole, gear_cy + hole], fill=(12, 52, 72))
+    draw.ellipse([gear_cx - hole, gear_cy - hole,
+                  gear_cx + hole, gear_cy + hole], outline=outer, width=8)
+
+    # Small RGB axis triad in the lower-right corner.
+    ox, oy = 872, 872
+    axis_len = 92
+    draw.line([(ox, oy), (ox + axis_len, oy)], fill=(255, 78, 78), width=12)
+    draw.line([(ox, oy), (ox, oy - axis_len)], fill=(70, 235, 120), width=12)
+    draw.line([(ox, oy), (ox - axis_len * 0.58, oy + axis_len * 0.55)],
+              fill=(90, 155, 255), width=12)
+    draw.ellipse([ox - 9, oy - 9, ox + 9, oy + 9], fill=(225, 238, 246))
 
     img = img.resize((256, 256), Image.LANCZOS)
     img.save(OUT)
