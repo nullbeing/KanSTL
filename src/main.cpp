@@ -272,23 +272,18 @@ bool isArrowKey(Key key) {
 void applyPivotKey(Key key, Camera& camera) {
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
-    const float roll = camera.roll_deg * 3.14159265358979323846f / 180.0f;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
-    const float cr = std::cos(roll);
-    const float sr = std::sin(roll);
 
-    // Screen right/up converted back to model space, including roll.
-    const float rx = cr * cy;
-    const float r_z1 = cr * sy;
-    const float ry = -sr * cp + r_z1 * sp;
-    const float rz = sr * sp + r_z1 * cp;
-    const float ux = sr * cy;
-    const float u_z1 = sr * sy;
-    const float uy = cr * cp + u_z1 * sp;
-    const float uz = -cr * sp + u_z1 * cp;
+    // Screen right/up converted back to model space.
+    const float rx = cy;
+    const float ry = sy * sp;
+    const float rz = sy * cp;
+    const float ux = 0.0f;
+    const float uy = cp;
+    const float uz = -sp;
     const float step = 0.05f;
 
     if (key == Key::Left) {
@@ -382,8 +377,7 @@ int runInteractive(const Options& options) {
     Mesh mesh;
     bool have_model = false;
     std::string current_path;
-    AutoRotateMode auto_mode =
-        options.auto_start ? AutoRotateMode::Horizontal : AutoRotateMode::Off;
+    bool auto_rotate = options.auto_start;
     bool wireframe = options.wireframe;
     RenderMode style = options.style;
 
@@ -501,13 +495,7 @@ int runInteractive(const Options& options) {
             camera.pivot_z = 0.0f;
             dirty = true;
         } else if (key == Key::Auto) {
-            if (auto_mode == AutoRotateMode::Off) {
-                auto_mode = AutoRotateMode::Horizontal;
-            } else if (auto_mode == AutoRotateMode::Horizontal) {
-                auto_mode = AutoRotateMode::Roll;
-            } else {
-                auto_mode = AutoRotateMode::Off;
-            }
+            auto_rotate = !auto_rotate;
             dirty = true;
         } else if (key == Key::Style) {
             wireframe = false;
@@ -593,8 +581,7 @@ int runInteractive(const Options& options) {
         // often enough for responsive key handling.
         auto loop_now = std::chrono::steady_clock::now();
         int timeout_ms = 16;
-        if (dirty ||
-            (mode == AppMode::Viewer && auto_mode != AutoRotateMode::Off)) {
+        if (dirty || (mode == AppMode::Viewer && auto_rotate)) {
             const double since_present =
                 std::chrono::duration<double>(loop_now - last_present).count() *
                 1000.0;
@@ -688,19 +675,9 @@ int runInteractive(const Options& options) {
             dirty = true;
         }
 
-        if (mode == AppMode::Viewer &&
-            auto_mode != AutoRotateMode::Off) {
-            const float step =
-                static_cast<float>(std::min(dt, 0.1));
-            if (auto_mode == AutoRotateMode::Horizontal) {
-                camera.yaw_deg += 40.0f * step;
-                while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
-            } else {
-                // Barrel roll around the viewing axis.
-                camera.roll_deg += 50.0f * step;
-                while (camera.roll_deg > 180.0f) camera.roll_deg -= 360.0f;
-                while (camera.roll_deg < -180.0f) camera.roll_deg += 360.0f;
-            }
+        if (mode == AppMode::Viewer && auto_rotate) {
+            camera.yaw_deg += 40.0f * static_cast<float>(std::min(dt, 0.1));
+            while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
             dirty = true;
         }
 
@@ -729,7 +706,7 @@ int runInteractive(const Options& options) {
                 ui.mesh = &mesh;
                 ui.camera = camera;
                 ui.fps = fps;
-                ui.auto_mode = auto_mode;
+                ui.auto_rotate = auto_rotate;
                 ui.style = style;
                 ui.wireframe = wireframe;
                 ui.help = help;

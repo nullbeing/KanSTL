@@ -165,16 +165,9 @@ void drawUi(Canvas& canvas, const UiState& state) {
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
 
     // Auto-rotate toggle aligned with the "6" key (x=161).
-    std::string auto_label = "auto";
-    if (state.auto_mode == AutoRotateMode::Horizontal) {
-        auto_label = "auto h";
-    } else if (state.auto_mode == AutoRotateMode::Roll) {
-        auto_label = "auto r";
-    }
-    drawLabelPill(canvas, 161, pill_y, pill_h, auto_label,
-                  state.auto_mode == AutoRotateMode::Off
-                      ? Theme::kPillBackground
-                      : Theme::kPillActive);
+    drawLabelPill(canvas, 161, pill_y, pill_h, "auto",
+                  state.auto_rotate ? Theme::kPillActive
+                                    : Theme::kPillBackground);
 
     // Render style button aligned with the "7" key (x=217).
     const std::string style_label =
@@ -230,7 +223,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"R / 0", "RESET / FIT", Theme::kAccent},
         {"7", "SOLID/EDGES/MATCAP", 0xFE60},
         {"W", "WIREFRAME", 0xFE60},
-        {"A / 6", "AUTO H / R", 0xFE60},
+        {"A / 6", "AUTO ROTATE", 0xFE60},
         {"B / 8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},
         {"H", "CLOSE HELP", Theme::kTextBright},
@@ -343,22 +336,17 @@ void drawAxisGizmo(Canvas& canvas, const Camera& camera,
 
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
-    const float roll = camera.roll_deg * 3.14159265358979323846f / 180.0f;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
-    const float cr = std::cos(roll);
-    const float sr = std::sin(roll);
 
     auto axis = [&](float ax, float ay, float az, uint16_t color) {
         const float y1 = ay * cp - az * sp;
         const float z1 = ay * sp + az * cp;
         const float x2 = ax * cy + z1 * sy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
-        const int ex = ox + static_cast<int>(std::lround(xr * scale));
-        const int ey = oy - static_cast<int>(std::lround(yr * scale));
+        const int ex = ox + static_cast<int>(std::lround(x2 * scale));
+        const int ey = oy - static_cast<int>(std::lround(y1 * scale));
         canvas.line(ox, oy, ex, ey, color);
     };
 
