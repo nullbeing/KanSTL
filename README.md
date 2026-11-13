@@ -26,7 +26,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - `7` cycles solid / edges / matcap / wireframe; the bottom pill shows the
   current style
 - `6` cycles auto-rotate off / X pitch / Y yaw / Z model-axis roll (the Z
-  axis is held horizontal); the tab turns mint green when active
+  axis is held horizontal); the tab turns mint green when active, and holding
+  the key for 0.6 s stops the rotation
 - Wireframe mode included in the `7` render-style cycle
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center
@@ -176,7 +177,7 @@ facet data itself is intact.
 | `R` | Reset view and center |
 | `0` | Fit the model to fill the viewport and recenter |
 | `7` | Cycle solid / edges / matcap / wireframe |
-| `6` | Cycle auto-rotate off / X / Y / Z |
+| `6` | Cycle auto-rotate off / X / Y / Z; hold 0.6 s to stop |
 | `8` | Open the file list |
 | `S` | Save a numbered `~/kanstl_screenshot_NNN.png` |
 | `H` | Help overlay |

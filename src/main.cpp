@@ -498,6 +498,10 @@ int runInteractive(const Options& options) {
     auto last_keepalive = now;
     auto esc_pressed = now;
     bool esc_down = false;
+    auto auto_pressed = now;
+    bool auto_down = false;
+    bool auto_hold_handled = false;
+    constexpr auto kAutoHold = std::chrono::milliseconds(600);
     bool exit_prompt_visible = false;
     double last_render_seconds = 0.0;
     constexpr auto kExitHold = std::chrono::milliseconds(3000);
@@ -584,6 +588,31 @@ int runInteractive(const Options& options) {
         return true;
     };
 
+    auto cycleAutoMode = [&]() {
+        AutoRotateMode next = AutoRotateMode::Off;
+        if (auto_mode == AutoRotateMode::Off) {
+            next = AutoRotateMode::X;
+        } else if (auto_mode == AutoRotateMode::X) {
+            next = AutoRotateMode::Y;
+        } else if (auto_mode == AutoRotateMode::Y) {
+            next = AutoRotateMode::Z;
+        }
+
+        // X and Y start face-on. Z starts with the model Z axis horizontal
+        // so the roll is visible as a real 3D spin.
+        if (next == AutoRotateMode::X || next == AutoRotateMode::Y) {
+            camera.yaw_deg = 0.0f;
+            camera.pitch_deg = 0.0f;
+            camera.roll_deg = 0.0f;
+        } else if (next == AutoRotateMode::Z) {
+            camera.yaw_deg = 90.0f;
+            camera.pitch_deg = 0.0f;
+            camera.roll_deg = 0.0f;
+        }
+        auto_mode = next;
+        dirty = true;
+    };
+
     auto handleViewerPress = [&](Key key) {
         if (key == Key::Reset) {
             camera = home_camera;
@@ -596,28 +625,10 @@ int runInteractive(const Options& options) {
                 mesh, camera, activeViewport(canvas, options.no_ui));
             dirty = true;
         } else if (key == Key::Auto) {
-            AutoRotateMode next = AutoRotateMode::Off;
-            if (auto_mode == AutoRotateMode::Off) {
-                next = AutoRotateMode::X;
-            } else if (auto_mode == AutoRotateMode::X) {
-                next = AutoRotateMode::Y;
-            } else if (auto_mode == AutoRotateMode::Y) {
-                next = AutoRotateMode::Z;
-            }
-
-            // X and Y start face-on. Z starts with the model Z axis horizontal
-            // so the roll is visible as a real 3D spin.
-            if (next == AutoRotateMode::X || next == AutoRotateMode::Y) {
-                camera.yaw_deg = 0.0f;
-                camera.pitch_deg = 0.0f;
-                camera.roll_deg = 0.0f;
-            } else if (next == AutoRotateMode::Z) {
-                camera.yaw_deg = 90.0f;
-                camera.pitch_deg = 0.0f;
-                camera.roll_deg = 0.0f;
-            }
-            auto_mode = next;
-            dirty = true;
+            // A tap cycles the modes on release; holding stops auto-rotate.
+            auto_pressed = std::chrono::steady_clock::now();
+            auto_down = true;
+            auto_hold_handled = false;
         } else if (key == Key::Style) {
             auto nextStyle = [](RenderMode current) {
                 switch (current) {
@@ -657,6 +668,8 @@ int runInteractive(const Options& options) {
         } else if (key == Key::Files) {
             help = false;
             mode = AppMode::Browser;
+            auto_down = false;
+            auto_hold_handled = false;
             browser.reload();
             if (!current_path.empty()) {
                 browser.selectPath(current_path);
@@ -771,6 +784,12 @@ int runInteractive(const Options& options) {
                         }
                         // Always repaint so the prompt disappears immediately.
                         dirty = true;
+                    } else if (mode == AppMode::Viewer && key == Key::Auto) {
+                        // Short tap cycles auto X/Y/Z; the hold path already
+                        // stopped auto-rotate while the key was down.
+                        auto_down = false;
+                        if (!auto_hold_handled) cycleAutoMode();
+                        auto_hold_handled = false;
                     } else if ((mode == AppMode::Viewer &&
                                 isViewerRepeatable(key)) ||
                                (mode == AppMode::Browser &&
@@ -782,6 +801,14 @@ int runInteractive(const Options& options) {
         }
 
         now = std::chrono::steady_clock::now();
+        if (auto_down && !auto_hold_handled &&
+            now - auto_pressed >= kAutoHold) {
+            auto_hold_handled = true;
+            if (auto_mode != AutoRotateMode::Off) {
+                auto_mode = AutoRotateMode::Off;
+                dirty = true;
+            }
+        }
         if (esc_down) {
             const auto held = now - esc_pressed;
             if (held >= kExitHold) {

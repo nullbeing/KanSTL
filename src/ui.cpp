@@ -266,7 +266,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay: rounded elevated panel with a drop shadow.
     const int panel_w = 218;
-    const int panel_h = 138;
+    const int panel_h = 148;
     const int radius = 8;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
@@ -294,6 +294,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"R / 0", "RESET / FIT", Theme::kAccent},
         {"7", "STYLE + WIREFRAME", 0xFE60},
         {"6", "AUTO X / Y / Z", 0xFE60},
+        {"HOLD 6", "STOP AUTO", 0xFE60},
         {"8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},
         {"H", "CLOSE HELP", Theme::kTextBright},

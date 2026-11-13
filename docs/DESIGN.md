@@ -162,7 +162,8 @@ Space        zoom out
 R            reset view and center
 0            fit projected bounds to the viewport and recenter
 7            cycle solid / edges / matcap / wireframe
-6            cycle auto-rotate off / X pitch / Y yaw / Z horizontal-axis roll
+6            cycle auto-rotate off / X pitch / Y yaw / Z horizontal-axis roll;
+             hold 0.6 s to stop auto-rotate
 8            open the file list (under the on-screen pill)
 S            screenshot to ~/kanstl_screenshot_NNN.png
 H            help overlay
@@ -179,7 +180,9 @@ and over the UI overlays.
 
 The bottom edge has no bar background: the axis readout and three pills float
 directly over the render. The axis text gets a one-pixel dark drop shadow for
-contrast. The pills are an auto-rotate toggle at x=161 (`auto`, `auto x`,
+contrast. A tap on `6` cycles the auto modes on key release; holding it for
+0.6 s stops auto-rotate while the key is still down. The pills are an
+auto-rotate toggle at x=161 (`auto`, `auto x`,
 `auto y`, `auto z`; mint green when running) under the `6` key, a render-style
 button at x=217 (`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a
 `files` button at x=273 under the `8` key. `8` opens the file browser. The 3D
