@@ -272,7 +272,6 @@ void drawUi(Canvas& canvas, const UiState& state) {
         {"6", "AUTO X / Y / Z", 0xFE60},
         {"8", "OPEN FILE LIST", 0xFE60},
         {"S", "SCREENSHOT", 0xFE60},
-        {"M", "SOUND ON / OFF", Theme::kTextBright},
         {"H", "CLOSE HELP", Theme::kTextBright},
         {"HOLD ESC", "EXIT", 0xF800},
     };

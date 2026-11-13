@@ -14,8 +14,6 @@
   render-style pill; decimation, quality modes and packaging assets remain
 - Device measurement (23,776 triangles): edges 17.8 ms/frame (~56 fps),
   matcap 10.1 ms/frame (~99 fps)
-- Sound effects: short synthesized ALSA tones for keys, confirmations, errors
-  and auto toggles; ALSA runs on its own worker thread
 
 ## Scope
 
@@ -142,9 +140,6 @@ R            reset view and center
 7            cycle solid / edges / matcap / wireframe
 6            cycle auto-rotate off / X pitch / Y yaw / Z horizontal-axis roll
 8            open the file list (under the on-screen pill)
-S            screenshot
-M            sound effects on / off
-H            help overlay
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
 

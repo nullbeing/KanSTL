@@ -17,7 +17,6 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - In-app file browser: browse folders, open `.stl` files, remembers the last
   directory, shows file sizes and load errors
 - Modal loading popup with filename, progress bar and percentage
-- Short ALSA sound effects for keys, confirmations, errors and auto toggles
 - Esc-to-exit needs a deliberate 3 second hold, with an on-screen progress bar
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
@@ -40,10 +39,6 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Runs as the normal `pi` user under APPLaunch
 
 ## Build
-
-Prerequisites: CMake 3.13+, a C++17 compiler and `libasound2-dev` for the
-sound effects. On the device, `libasound2-plugins` provides the `pulse` ALSA
-route used by PipeWire.
 
 Native (for screenshots and benchmarks on a desktop):
 
@@ -169,7 +164,6 @@ Opening a model shows a modal progress popup:
 | `6` | Cycle auto-rotate off / X / Y / Z |
 | `8` | Open the file list |
 | `S` | Save `/tmp/kanstl_shot.png` |
-| `M` | Sound effects on / off |
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
 
