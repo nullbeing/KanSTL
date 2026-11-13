@@ -8,7 +8,7 @@ import struct
 
 def write_binary_stl(path, triangles):
     with open(path, "wb") as f:
-        f.write(b"stlviewer test model".ljust(80, b"\0"))
+        f.write(b"kanstl test model".ljust(80, b"\0"))
         f.write(struct.pack("<I", len(triangles)))
         for a, b, c in triangles:
             f.write(struct.pack("<3f", 0.0, 0.0, 0.0))

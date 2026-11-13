@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_PNG_H
-#define STLVIEWER_PNG_H
+#ifndef KANSTL_PNG_H
+#define KANSTL_PNG_H
 
 #include <string>
 
@@ -7,4 +7,4 @@
 
 bool saveCanvasPng(const Canvas& canvas, const std::string& path);
 
-#endif  // STLVIEWER_PNG_H
+#endif  // KANSTL_PNG_H

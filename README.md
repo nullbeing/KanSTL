@@ -1,4 +1,4 @@
-# stlviewer
+# KanSTL
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Platform](https://img.shields.io/badge/platform-M5Stack%20Cardputer%20Zero-orange.svg)]()
@@ -10,7 +10,7 @@ software rasterizer, straight into `/dev/fb0`.
 **Status: M4 in progress** - STL loading, solid/edges/matcap rendering,
 wireframe toggle, rotate/zoom, and an in-app file browser.
 
-![STL Viewer](docs/images/icosphere.png)
+![KanSTL](docs/images/icosphere.png)
 
 ## Features
 
@@ -60,33 +60,33 @@ cmake --build build-aarch64 -j$(nproc)
 
 ```bash
 # Interactive file browser (default when no model is given)
-./stlviewer
+./kanstl
 
 # Open one model directly
-./stlviewer model.stl
+./kanstl model.stl
 
 # Print a directory listing without a framebuffer/keyboard
-./stlviewer --list ~/models
+./kanstl --list ~/models
 
 # Render one frame to a PNG (works on a desktop)
-./stlviewer --shot out.png examples/icosphere.stl
-./stlviewer --no-ui --shot clean.png examples/cube.stl
+./kanstl --shot out.png examples/icosphere.stl
+./kanstl --no-ui --shot clean.png examples/cube.stl
 
 # Camera options
-./stlviewer --yaw 45 --pitch 30 --zoom 1.5 --shot out.png model.stl
+./kanstl --yaw 45 --pitch 30 --zoom 1.5 --shot out.png model.stl
 
 # Start spinning automatically (useful for demos)
-./stlviewer --auto model.stl
+./kanstl --auto model.stl
 
 # Render style and pure wireframe
-./stlviewer --style edges model.stl
-./stlviewer --style matcap --shot matcap.png examples/icosphere.stl
-./stlviewer --wireframe model.stl
+./kanstl --style edges model.stl
+./kanstl --style matcap --shot matcap.png examples/icosphere.stl
+./kanstl --wireframe model.stl
 
 # Benchmark the renderer (offscreen)
-./stlviewer --bench 300 examples/icosphere.stl
-./stlviewer --bench 300 --style edges examples/icosphere.stl
-./stlviewer --bench 300 --wireframe examples/icosphere.stl
+./kanstl --bench 300 examples/icosphere.stl
+./kanstl --bench 300 --style edges examples/icosphere.stl
+./kanstl --bench 300 --wireframe examples/icosphere.stl
 ```
 
 With no model path the app starts in the file browser at the last used
@@ -144,7 +144,7 @@ Wireframe:
 directory.
 
 Only folders and `.stl` files are listed. The last directory and file selection
-are remembered in `~/.config/stlviewer/last_dir`.
+are remembered in `~/.config/kanstl/last_dir`.
 
 Opening a model shows a modal progress popup:
 
@@ -163,7 +163,7 @@ Opening a model shows a modal progress popup:
 | `7` | Cycle solid / edges / matcap / wireframe |
 | `6` | Cycle auto-rotate off / X / Y / Z |
 | `8` | Open the file list |
-| `S` | Save `/tmp/stlviewer_shot.png` |
+| `S` | Save `/tmp/kanstl_shot.png` |
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
 

@@ -1,4 +1,4 @@
-# stlviewer design notes
+# KanSTL design notes
 
 ## Implementation status
 
@@ -168,7 +168,7 @@ R            reload
 ```
 
 It lists folders and `.stl` files only, shows file sizes, remembers the last
-directory and selection in `~/.config/stlviewer/last_dir`, and overlays a
+directory and selection in `~/.config/kanstl/last_dir`, and overlays a
 modal loading popup with a progress bar plus load errors without leaving the
 browser.
 

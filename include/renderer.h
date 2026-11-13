@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_RENDERER_H
-#define STLVIEWER_RENDERER_H
+#ifndef KANSTL_RENDERER_H
+#define KANSTL_RENDERER_H
 
 #include <cstdint>
 #include <vector>
@@ -62,4 +62,4 @@ private:
     uint16_t matcap_[32 * 32] = {};
 };
 
-#endif  // STLVIEWER_RENDERER_H
+#endif  // KANSTL_RENDERER_H

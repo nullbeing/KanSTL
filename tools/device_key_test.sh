@@ -25,7 +25,7 @@ echo "virtual keyboard: $KBD"
 [ -r "$KBD" ] || printf '1090\n' | sudo -S chmod 666 "$KBD"
 
 sleep 1
-/tmp/stlviewer --kbd "$KBD" /tmp/icosphere.stl >/tmp/stl.log 2>&1 &
+/tmp/kanstl --kbd "$KBD" /tmp/icosphere.stl >/tmp/stl.log 2>&1 &
 APP=$!
 sleep 2
 dd if=/dev/fb0 bs=640 count=170 of=/tmp/fb_before.raw 2>/dev/null

@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_CANVAS_H
-#define STLVIEWER_CANVAS_H
+#ifndef KANSTL_CANVAS_H
+#define KANSTL_CANVAS_H
 
 #include <cstdint>
 #include <string>
@@ -63,4 +63,4 @@ constexpr uint16_t kDialogBackground = 0x18C3;  // raised dark slate
 constexpr uint16_t kDialogBorder = 0x4A69;      // soft border
 }  // namespace Theme
 
-#endif  // STLVIEWER_CANVAS_H
+#endif  // KANSTL_CANVAS_H

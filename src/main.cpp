@@ -56,7 +56,7 @@ struct Options {
 
 void printUsage(const char* argv0) {
     std::printf(
-        "stlviewer - STL viewer for the M5Stack Cardputer Zero\n"
+        "kanstl - STL viewer for the M5Stack Cardputer Zero\n"
         "\n"
         "Usage: %s [options] [model.stl]\n"
         "\n"
@@ -182,11 +182,11 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
 std::string configPath() {
     const char* xdg = std::getenv("XDG_CONFIG_HOME");
     if (xdg != nullptr && *xdg != '\0') {
-        return std::string(xdg) + "/stlviewer/last_dir";
+        return std::string(xdg) + "/kanstl/last_dir";
     }
     const char* home = std::getenv("HOME");
     return std::string(home && *home ? home : "/home/pi") +
-           "/.config/stlviewer/last_dir";
+           "/.config/kanstl/last_dir";
 }
 
 std::string scanForStl(const std::filesystem::path& dir) {
@@ -217,7 +217,7 @@ std::string scanForStl(const std::filesystem::path& dir) {
 }
 
 std::string findDefaultModel() {
-    if (const char* env = std::getenv("STLVIEWER_MODEL")) {
+    if (const char* env = std::getenv("KANSTL_MODEL")) {
         if (*env) return env;
     }
     if (std::string found = scanForStl(std::filesystem::current_path());
@@ -408,14 +408,14 @@ int runInteractive(const Options& options) {
     Framebuffer framebuffer;
     std::string error;
     if (!framebuffer.open(options.fb_device, error)) {
-        std::fprintf(stderr, "stlviewer: %s\n", error.c_str());
+        std::fprintf(stderr, "kanstl: %s\n", error.c_str());
         return 1;
     }
     framebuffer.keepDisplayOn();
 
     Keyboard keyboard;
     if (!keyboard.open(options.kbd_device, error)) {
-        std::fprintf(stderr, "stlviewer: %s\n", error.c_str());
+        std::fprintf(stderr, "kanstl: %s\n", error.c_str());
         return 1;
     }
 
@@ -496,7 +496,7 @@ int runInteractive(const Options& options) {
     constexpr auto kExitPromptDelay = std::chrono::milliseconds(300);
 
     auto saveScreenshot = [&]() {
-        const std::string path = "/tmp/stlviewer_shot.png";
+        const std::string path = "/tmp/kanstl_shot.png";
         if (saveCanvasPng(canvas, path)) {
             toast = "SAVED " + path;
         } else {
@@ -909,7 +909,7 @@ int renderScreenshot(const Options& options, Mesh& mesh) {
     }
 
     if (!saveCanvasPng(canvas, options.shot_path)) {
-        std::fprintf(stderr, "stlviewer: failed to write %s\n",
+        std::fprintf(stderr, "kanstl: failed to write %s\n",
                      options.shot_path.c_str());
         return 1;
     }
@@ -946,7 +946,7 @@ int main(int argc, char** argv) {
     Options options;
     std::string error;
     if (!parseArgs(argc, argv, options, error)) {
-        std::fprintf(stderr, "stlviewer: %s\n\n", error.c_str());
+        std::fprintf(stderr, "kanstl: %s\n\n", error.c_str());
         printUsage(argv[0]);
         return 1;
     }
@@ -962,12 +962,12 @@ int main(int argc, char** argv) {
         if (path.empty()) path = findDefaultModel();
         if (path.empty()) {
             std::fprintf(stderr,
-                         "stlviewer: no STL file given and none found\n");
+                         "kanstl: no STL file given and none found\n");
             return 1;
         }
         Mesh mesh;
         if (!loadStl(path, mesh, error)) {
-            std::fprintf(stderr, "stlviewer: %s: %s\n", path.c_str(),
+            std::fprintf(stderr, "kanstl: %s: %s\n", path.c_str(),
                          error.c_str());
             return 1;
         }

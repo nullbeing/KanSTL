@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_FRAMEBUFFER_H
-#define STLVIEWER_FRAMEBUFFER_H
+#ifndef KANSTL_FRAMEBUFFER_H
+#define KANSTL_FRAMEBUFFER_H
 
 #include <cstddef>
 #include <cstdint>
@@ -33,4 +33,4 @@ private:
     int bits_per_pixel_ = 0;
 };
 
-#endif  // STLVIEWER_FRAMEBUFFER_H
+#endif  // KANSTL_FRAMEBUFFER_H

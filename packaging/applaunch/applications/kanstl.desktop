@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=KanSTL
+Exec=bin/run-kanstl
+Terminal=false
+Icon=share/images/kanstl.png
+Type=Application

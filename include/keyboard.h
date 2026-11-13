@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_KEYBOARD_H
-#define STLVIEWER_KEYBOARD_H
+#ifndef KANSTL_KEYBOARD_H
+#define KANSTL_KEYBOARD_H
 
 #include <string>
 
@@ -45,4 +45,4 @@ private:
     bool alt_ = false;
 };
 
-#endif  // STLVIEWER_KEYBOARD_H
+#endif  // KANSTL_KEYBOARD_H

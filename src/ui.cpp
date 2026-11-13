@@ -253,7 +253,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
     fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
                   radius - 1, Theme::kDialogBackground);
 
-    canvas.text(px + 10, py + 7, "STL VIEWER", Theme::kAccent);
+    canvas.text(px + 10, py + 7, "KanSTL", Theme::kAccent);
     drawTextRight(canvas, px + panel_w - 10, py + 7, "KEYS",
                   Theme::kTextDim);
     canvas.fillRect(px + 10, py + 20, panel_w - 20, 1, Theme::kBarBorder);

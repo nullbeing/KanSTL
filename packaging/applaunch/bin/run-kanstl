@@ -1,4 +1,4 @@
 #!/bin/sh
-# APPLaunch wrapper for stlviewer.
+# APPLaunch wrapper for kanstl.
 # The binary finds the first .stl in the current directory or $HOME by itself.
-exec /usr/share/APPLaunch/bin/stlviewer "$@"
+exec /usr/share/APPLaunch/bin/kanstl "$@"

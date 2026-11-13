@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_STL_LOADER_H
-#define STLVIEWER_STL_LOADER_H
+#ifndef KANSTL_STL_LOADER_H
+#define KANSTL_STL_LOADER_H
 
 #include <cstddef>
 #include <cstdint>
@@ -43,4 +43,4 @@ struct Mesh {
 bool loadStl(const std::string& path, Mesh& mesh, std::string& error,
              const std::function<void(float)>& progress = {});
 
-#endif  // STLVIEWER_STL_LOADER_H
+#endif  // KANSTL_STL_LOADER_H

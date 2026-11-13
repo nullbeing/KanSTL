@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(stlviewer LANGUAGES CXX)
+project(KanSTL LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-add_executable(stlviewer
+add_executable(kanstl
     src/main.cpp
     src/canvas.cpp
     src/file_browser.cpp
@@ -22,9 +22,9 @@ add_executable(stlviewer
     src/ui.cpp
 )
 
-target_include_directories(stlviewer PRIVATE include)
-target_compile_options(stlviewer PRIVATE -Wall -Wextra)
+target_include_directories(kanstl PRIVATE include)
+target_compile_options(kanstl PRIVATE -Wall -Wextra)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-    target_compile_options(stlviewer PRIVATE -O3 -march=armv8-a -mtune=cortex-a53)
+    target_compile_options(kanstl PRIVATE -O3 -march=armv8-a -mtune=cortex-a53)
 endif()

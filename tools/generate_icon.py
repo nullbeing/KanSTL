@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the STL Viewer app icon: a triangulated isometric cube."""
+"""Generate the KanSTL app icon: a triangulated isometric cube."""
 
 from PIL import Image, ImageDraw, ImageFilter
 
 S = 1024
-OUT = "packaging/applaunch/share/images/stlviewer.png"
+OUT = "packaging/applaunch/share/images/kanstl.png"
 
 
 def lerp_color(a, b, t):

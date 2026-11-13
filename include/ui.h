@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_UI_H
-#define STLVIEWER_UI_H
+#ifndef KANSTL_UI_H
+#define KANSTL_UI_H
 
 #include <string>
 
@@ -34,4 +34,4 @@ void drawLoadingPopup(Canvas& canvas, const std::string& filename,
 void drawExitPrompt(Canvas& canvas, float progress);
 void drawAxisGizmo(Canvas& canvas, const Camera& camera, const Rect& viewport);
 
-#endif  // STLVIEWER_UI_H
+#endif  // KANSTL_UI_H

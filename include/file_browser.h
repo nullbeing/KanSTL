@@ -1,5 +1,5 @@
-#ifndef STLVIEWER_FILE_BROWSER_H
-#define STLVIEWER_FILE_BROWSER_H
+#ifndef KANSTL_FILE_BROWSER_H
+#define KANSTL_FILE_BROWSER_H
 
 #include <cstdint>
 #include <string>
@@ -58,4 +58,4 @@ private:
     std::string error_;
 };
 
-#endif  // STLVIEWER_FILE_BROWSER_H
+#endif  // KANSTL_FILE_BROWSER_H

@@ -7,7 +7,7 @@ from evdev import UInput, ecodes as e
 ui = UInput(
     {e.EV_KEY: [e.KEY_RIGHT, e.KEY_LEFT, e.KEY_UP, e.KEY_DOWN,
                 e.KEY_KPPLUS, e.KEY_KPMINUS, e.KEY_ESC]},
-    name="stlviewer-test",
+    name="kanstl-test",
 )
 with open("/tmp/vkbd.path", "w") as f:
     f.write(ui.device.path)
