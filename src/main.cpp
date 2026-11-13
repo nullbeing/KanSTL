@@ -503,9 +503,26 @@ int runInteractive(const Options& options) {
     constexpr auto kExitPromptDelay = std::chrono::milliseconds(300);
 
     auto saveScreenshot = [&]() {
-        const std::string path = "/tmp/kanstl_shot.png";
-        if (saveCanvasPng(canvas, path)) {
-            toast = "SAVED " + path;
+        // Screenshots go to $HOME and are numbered so earlier shots survive.
+        std::error_code ec;
+        std::filesystem::path dir =
+            std::filesystem::temp_directory_path(ec);
+        if (const char* home = std::getenv("HOME");
+            home != nullptr && *home != '\0') {
+            dir = home;
+        }
+
+        std::filesystem::path path;
+        for (int index = 1; index <= 999; ++index) {
+            char name[40];
+            std::snprintf(name, sizeof(name), "kanstl_screenshot_%03d.png",
+                          index);
+            path = dir / name;
+            if (!std::filesystem::exists(path, ec)) break;
+        }
+
+        if (saveCanvasPng(canvas, path.string())) {
+            toast = "SAVED " + path.string();
         } else {
             toast = "SCREENSHOT FAILED";
         }

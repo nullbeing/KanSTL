@@ -164,7 +164,7 @@ Opening a model shows a modal progress popup:
 | `7` | Cycle solid / edges / matcap / wireframe |
 | `6` | Cycle auto-rotate off / X / Y / Z |
 | `8` | Open the file list |
-| `S` | Save `/tmp/kanstl_shot.png` |
+| `S` | Save a numbered `~/kanstl_screenshot_NNN.png` |
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
 
