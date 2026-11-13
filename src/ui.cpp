@@ -470,29 +470,6 @@ void drawAxisGizmo(Canvas& canvas, const Camera& camera,
     canvas.fillRect(ox, oy, 1, 1, Theme::kTextDim);
 }
 
-void drawCameraIcon(Canvas& canvas, int x, int y, uint16_t color) {
-    // Camera body, top viewfinder bump and lens ring; 20x14 pixel art.
-    canvas.rect(x + 1, y + 4, 18, 9, color);
-    canvas.fillRect(x + 5, y + 2, 5, 2, color);
-
-    const float cx = static_cast<float>(x) + 10.0f;
-    const float cy = static_cast<float>(y) + 8.5f;
-    for (int py = 0; py < kCameraIconHeight; ++py) {
-        for (int px = 0; px < kCameraIconWidth; ++px) {
-            const float dx = static_cast<float>(x + px) + 0.5f - cx;
-            const float dy = static_cast<float>(y + py) + 0.5f - cy;
-            const float d2 = dx * dx + dy * dy;
-            if (d2 <= 2.9f * 2.9f && d2 >= 1.5f * 1.5f) {
-                canvas.pixel(x + px, y + py, color);
-            }
-        }
-    }
-
-    // Flash sparkle above the right edge.
-    canvas.fillRect(x + 16, y + 1, 3, 1, color);
-    canvas.fillRect(x + 17, y, 1, 3, color);
-}
-
 void drawExitPrompt(Canvas& canvas, float progress) {
     const int w = canvas.width();
     const int h = canvas.height();

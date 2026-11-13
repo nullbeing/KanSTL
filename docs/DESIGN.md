@@ -164,12 +164,6 @@ movement, amber for display/file actions, red for exit) and its lower-right
 corner shows the KanSTL app icon, generated into `include/app_icon.h` by
 `scripts/gen_icon.py`.
 
-Screenshots are written as `$HOME/kanstl_screenshot_NNN.png` with the first
-free number, so earlier shots are never overwritten. Instead of a toast, a
-small camera glyph flashes in the lower-right corner for 0.8 s. It is drawn
-straight onto the framebuffer after the canvas present, which keeps it out of
-the saved PNG.
-
 File browser (first start opens `$HOME`, then the last used directory):
 
 ```text

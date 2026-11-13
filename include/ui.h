@@ -32,11 +32,6 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser);
 void drawLoadingPopup(Canvas& canvas, const std::string& filename,
                       float progress);
 void drawExitPrompt(Canvas& canvas, float progress);
-
-// Small 20x14 camera glyph used as the screenshot confirmation flash.
-constexpr int kCameraIconWidth = 20;
-constexpr int kCameraIconHeight = 14;
-void drawCameraIcon(Canvas& canvas, int x, int y, uint16_t color);
 void drawAxisGizmo(Canvas& canvas, const Camera& camera, const Rect& viewport);
 
 #endif  // KANSTL_UI_H
