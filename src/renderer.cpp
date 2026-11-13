@@ -117,16 +117,16 @@ void Renderer::project(const Mesh& mesh, const Camera& camera,
         const float vy = v.y - camera.pivot_y;
         const float vz = v.z - camera.pivot_z;
 
-        // Pitch around X, then yaw around Y.
-        const float y1 = vy * cp - vz * sp;
-        const float z1 = vy * sp + vz * cp;
-        const float x2 = vx * cy + z1 * sy;
-        const float z2 = -vx * sy + z1 * cy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
+        // Roll around the model Z axis, then pitch around X, then yaw.
+        const float vx0 = vx * cr - vy * sr;
+        const float vy0 = vx * sr + vy * cr;
+        const float y1 = vy0 * cp - vz * sp;
+        const float z1 = vy0 * sp + vz * cp;
+        const float x2 = vx0 * cy + z1 * sy;
+        const float z2 = -vx0 * sy + z1 * cy;
 
-        screen_x_[i] = center_x + xr * scale;
-        screen_y_[i] = center_y - yr * scale;
+        screen_x_[i] = center_x + x2 * scale;
+        screen_y_[i] = center_y - y1 * scale;
         depth_[i] = z2;
     }
 }
@@ -217,12 +217,12 @@ void Renderer::renderSolid(const Mesh& mesh, Canvas& canvas,
         if (bx1 < bx0 || by1 < by0) continue;
 
         const Vec3& normal = mesh.normals[i / 3];
-        const float ny0 = normal.y * cp - normal.z * sp;
-        const float nz1 = normal.y * sp + normal.z * cp;
-        const float nx0 = normal.x * cy + nz1 * sy;
-        const float nz = -normal.x * sy + nz1 * cy;
-        const float nx = nx0 * cr - ny0 * sr;
-        const float ny = nx0 * sr + ny0 * cr;
+        const float nx0 = normal.x * cr - normal.y * sr;
+        const float ny0 = normal.x * sr + normal.y * cr;
+        const float ny = ny0 * cp - normal.z * sp;
+        const float nz1 = ny0 * sp + normal.z * cp;
+        const float nx = nx0 * cy + nz1 * sy;
+        const float nz = -nx0 * sy + nz1 * cy;
 
         uint16_t color = 0;
         if (matcap) {
@@ -284,15 +284,15 @@ void Renderer::renderFeatureEdges(const Mesh& mesh, const Camera& camera,
         const float vy = v.y - camera.pivot_y;
         const float vz = v.z - camera.pivot_z;
 
-        const float y1 = vy * cp - vz * sp;
-        const float z1 = vy * sp + vz * cp;
-        const float x2 = vx * cy + z1 * sy;
-        const float z2 = -vx * sy + z1 * cy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
+        const float vx0 = vx * cr - vy * sr;
+        const float vy0 = vx * sr + vy * cr;
+        const float y1 = vy0 * cp - vz * sp;
+        const float z1 = vy0 * sp + vz * cp;
+        const float x2 = vx0 * cy + z1 * sy;
+        const float z2 = -vx0 * sy + z1 * cy;
 
-        edge_screen_x_[i] = center_x + xr * scale;
-        edge_screen_y_[i] = center_y - yr * scale;
+        edge_screen_x_[i] = center_x + x2 * scale;
+        edge_screen_y_[i] = center_y - y1 * scale;
         edge_depth_[i] = z2;
     }
 
@@ -300,8 +300,10 @@ void Renderer::renderFeatureEdges(const Mesh& mesh, const Camera& camera,
     std::vector<float> normal_z(mesh.triangleCount());
     for (size_t i = 0; i < mesh.triangleCount(); ++i) {
         const Vec3& n = mesh.normals[i];
-        const float nz1 = n.y * sp + n.z * cp;
-        normal_z[i] = -n.x * sy + nz1 * cy;
+        const float nx0 = n.x * cr - n.y * sr;
+        const float ny0 = n.x * sr + n.y * cr;
+        const float nz1 = ny0 * sp + n.z * cp;
+        normal_z[i] = -nx0 * sy + nz1 * cy;
     }
 
     const int min_x = viewport.x;

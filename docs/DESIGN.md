@@ -138,7 +138,7 @@ Space        zoom out
 R            reset view and center
 0            fit projected bounds to the viewport and recenter
 7            cycle solid / edges / matcap / wireframe
-6            cycle auto-rotate off / X pitch / Y yaw / Z roll
+6            cycle auto-rotate off / X pitch / Y yaw / Z horizontal-axis roll
 8            open the file list (under the on-screen pill)
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```

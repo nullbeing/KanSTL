@@ -23,8 +23,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - MATCAP mode: metallic normal-map shading with a specular highlight
 - `7` cycles solid / edges / matcap / wireframe; the bottom pill shows the
   current style
-- `6` cycles auto-rotate off / X pitch / Y yaw / Z view-axis roll; the tab
-  turns mint green when active
+- `6` cycles auto-rotate off / X pitch / Y yaw / Z model-axis roll (the Z
+  axis is held horizontal); the tab turns mint green when active
 - Wireframe mode included in the `7` render-style cycle
 - Arrow keys rotate, `Alt` + arrows move the rotation center
 - `Enter` / `Space` zoom, `R` / `0` reset the view and center

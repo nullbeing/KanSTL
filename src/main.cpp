@@ -264,13 +264,13 @@ float fittedZoom(const Mesh& mesh, const Camera& camera, const Rect& viewport) {
     float max_x = 0.0f;
     float max_y = 0.0f;
     for (const Vec3& v : vertices) {
-        const float y1 = v.y * cp - v.z * sp;
-        const float z1 = v.y * sp + v.z * cp;
-        const float x2 = v.x * cy + z1 * sy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
-        max_x = std::max(max_x, std::fabs(xr));
-        max_y = std::max(max_y, std::fabs(yr));
+        const float x0 = v.x * cr - v.y * sr;
+        const float y0 = v.x * sr + v.y * cr;
+        const float y1 = y0 * cp - v.z * sp;
+        const float z1 = y0 * sp + v.z * cp;
+        const float x2 = x0 * cy + z1 * sy;
+        max_x = std::max(max_x, std::fabs(x2));
+        max_y = std::max(max_y, std::fabs(y1));
     }
     if (max_x < 1e-6f || max_y < 1e-6f) return 1.0f;
 
@@ -324,15 +324,13 @@ void applyPivotKey(Key key, Camera& camera) {
     const float cr = std::cos(roll);
     const float sr = std::sin(roll);
 
-    // Screen right/up converted back to model space, including roll.
-    const float rx = cr * cy;
-    const float r_z1 = cr * sy;
-    const float ry = -sr * cp + r_z1 * sp;
-    const float rz = sr * sp + r_z1 * cp;
-    const float ux = sr * cy;
-    const float u_z1 = sr * sy;
-    const float uy = cr * cp + u_z1 * sp;
-    const float uz = -cr * sp + u_z1 * cp;
+    // Screen right/up converted back through yaw, pitch and body roll.
+    const float rx = cy * cr + sy * sp * sr;
+    const float ry = -cy * sr + sy * sp * cr;
+    const float rz = sy * cp;
+    const float ux = cp * sr;
+    const float uy = cp * cr;
+    const float uz = -sp;
     const float step = 0.05f;
 
     if (key == Key::Left) {
@@ -558,9 +556,14 @@ int runInteractive(const Options& options) {
                 next = AutoRotateMode::Z;
             }
 
-            // Entering a mode starts face-on so each axis rotation is clean.
-            if (next != AutoRotateMode::Off) {
+            // X and Y start face-on. Z starts with the model Z axis horizontal
+            // so the roll is visible as a real 3D spin.
+            if (next == AutoRotateMode::X || next == AutoRotateMode::Y) {
                 camera.yaw_deg = 0.0f;
+                camera.pitch_deg = 0.0f;
+                camera.roll_deg = 0.0f;
+            } else if (next == AutoRotateMode::Z) {
+                camera.yaw_deg = 90.0f;
                 camera.pitch_deg = 0.0f;
                 camera.roll_deg = 0.0f;
             }

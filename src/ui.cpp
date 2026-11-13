@@ -389,13 +389,13 @@ void drawAxisGizmo(Canvas& canvas, const Camera& camera,
     const float sr = std::sin(roll);
 
     auto axis = [&](float ax, float ay, float az, uint16_t color) {
-        const float y1 = ay * cp - az * sp;
-        const float z1 = ay * sp + az * cp;
-        const float x2 = ax * cy + z1 * sy;
-        const float xr = x2 * cr - y1 * sr;
-        const float yr = x2 * sr + y1 * cr;
-        const int ex = ox + static_cast<int>(std::lround(xr * scale));
-        const int ey = oy - static_cast<int>(std::lround(yr * scale));
+        const float ax0 = ax * cr - ay * sr;
+        const float ay0 = ax * sr + ay * cr;
+        const float y1 = ay0 * cp - az * sp;
+        const float z1 = ay0 * sp + az * cp;
+        const float x2 = ax0 * cy + z1 * sy;
+        const int ex = ox + static_cast<int>(std::lround(x2 * scale));
+        const int ey = oy - static_cast<int>(std::lround(y1 * scale));
         canvas.line(ox, oy, ex, ey, color);
     };
 
