@@ -236,15 +236,22 @@ void drawUi(Canvas& canvas, const UiState& state) {
     drawLabelPill(canvas, 273, pill_y, pill_h, "files",
                   Theme::kPillBackground);
 
-    // Transient toast (screenshot saved, etc.).
+    // Transient toast (screenshot saved, etc.), styled like the other popups.
     if (!state.toast.empty()) {
         const std::string text = truncate(state.toast, 44);
-        const int box_w = canvas.textWidth(text) + 10;
-        const int box_x = (w - box_w) / 2;
-        const int box_y = hint_y - 16;
-        canvas.fillRect(box_x, box_y, box_w, 14, Theme::kBarBackground);
-        canvas.rect(box_x, box_y, box_w, 14, Theme::kAccent);
-        canvas.text(box_x + 5, box_y + 3, text, Theme::kTextBright);
+        const int panel_w = std::min(w - 8, canvas.textWidth(text) + 16);
+        const int panel_h = 18;
+        const int radius = 5;
+        const int px = (w - panel_w) / 2;
+        const int py = hint_y - panel_h - 6;
+
+        drawSoftShadow(canvas, px, py, panel_w, panel_h, radius);
+        fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
+                      Theme::kDialogBorder);
+        fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
+                      radius - 1, Theme::kDialogBackground);
+        canvas.text(px + (panel_w - canvas.textWidth(text)) / 2, py + 5, text,
+                    Theme::kTextBright);
     }
 
     if (!state.help) return;

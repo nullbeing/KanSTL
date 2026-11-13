@@ -164,6 +164,10 @@ movement, amber for display/file actions, red for exit) and its lower-right
 corner shows the KanSTL app icon, generated into `include/app_icon.h` by
 `scripts/gen_icon.py`.
 
+Transient messages (for example the screenshot confirmation) use the same
+rounded, shadowed panel above the bottom bar, centered and sized to their
+text.
+
 File browser (first start opens `$HOME`, then the last used directory):
 
 ```text
