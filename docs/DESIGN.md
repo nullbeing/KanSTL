@@ -203,10 +203,7 @@ Transient messages (for example the screenshot confirmation) use the same
 rounded, shadowed panel above the bottom bar, centered and sized to their
 text.
 
-File browser (first start opens `$HOME`, then the last used directory). The
-embedded app icon is drawn as a crisp 96x96 watermark behind the list
-rows, scaled with nearest-neighbour sampling so it matches the sharp icon
-used in the help panel:
+File browser (first start opens `$HOME`, then the last used directory):
 
 ```text
 Up/Down      select

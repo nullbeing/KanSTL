@@ -369,33 +369,11 @@ void drawUi(Canvas& canvas, const UiState& state) {
     }
 }
 
-void drawIconWatermark(Canvas& canvas, int center_x, int center_y, int size,
-                       float alpha) {
-    if (size <= 0) return;
-    const int x0 = center_x - size / 2;
-    const int y0 = center_y - size / 2;
-
-    // Nearest-neighbour scaling keeps the pixel-art edges as crisp as the
-    // icon used in the help panel.
-    for (int y = 0; y < size; ++y) {
-        const int sy = y * kAppIconSize / size;
-        for (int x = 0; x < size; ++x) {
-            const int sx = x * kAppIconSize / size;
-            const uint16_t color = kAppIcon[sy * kAppIconSize + sx];
-            if (color == 0) continue;
-            canvas.blendPixel(x0 + x, y0 + y, color, alpha);
-        }
-    }
-}
 void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     const int w = canvas.width();
     const int h = canvas.height();
     const auto& entries = browser.entries();
     canvas.clear(Theme::kBackground);
-
-    // Faded app icon behind the file list.
-    drawIconWatermark(canvas, w / 2,
-                      (kStatusHeight + h - kHintHeight) / 2, 96, 0.25f);
 
     // Top bar: current directory and item count.
     canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
