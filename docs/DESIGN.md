@@ -158,7 +158,9 @@ at x=273 under the `8` key. `8` opens the file browser.
 
 Status bar: file name, triangle count, fps. The help overlay is
 a rounded, shadowed panel; keys are color-coded by group (cyan for view
-movement, amber for display/file actions, red for exit).
+movement, amber for display/file actions, red for exit) and its lower-right
+corner shows the KanSTL app icon, generated into `include/app_icon.h` by
+`scripts/gen_icon.py`.
 
 File browser (first start opens `$HOME`, then the last used directory):
 

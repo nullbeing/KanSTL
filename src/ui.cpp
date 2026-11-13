@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "app_icon.h"
 #include "font.h"
 #include <cmath>
 #include <cstdio>
@@ -289,6 +290,19 @@ void drawUi(Canvas& canvas, const UiState& state) {
         canvas.text(px + 10, y, line.key, line.color);
         canvas.text(px + 88, y, line.action, Theme::kTextBright);
         y += 10;
+    }
+
+    // App icon in the lower-right corner. Dark background pixels are stored as
+    // 0 by the generator, so the cube floats directly on the panel.
+    constexpr int kIconInset = 4;
+    const int icon_x = px + panel_w - kIconInset - kAppIconSize;
+    const int icon_y = py + panel_h - kIconInset - kAppIconSize;
+    for (int iy = 0; iy < kAppIconSize; ++iy) {
+        for (int ix = 0; ix < kAppIconSize; ++ix) {
+            const uint16_t color = kAppIcon[iy * kAppIconSize + ix];
+            if (color == 0) continue;
+            canvas.pixel(icon_x + ix, icon_y + iy, color);
+        }
     }
 }
 

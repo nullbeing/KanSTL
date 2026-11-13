@@ -168,7 +168,8 @@ Opening a model shows a modal progress popup:
 | `H` | Help overlay |
 | `Esc` | Close help; hold 3s to exit |
 
-The help overlay groups keys by color:
+The help overlay groups keys by color and shows the app icon in its
+lower-right corner:
 
 ![Help overlay](docs/images/help.png)
 
