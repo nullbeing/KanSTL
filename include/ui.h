@@ -29,7 +29,8 @@ int hintBarHeight();
 Rect viewportRect(int canvas_width, int canvas_height);
 void drawUi(Canvas& canvas, const UiState& state);
 void drawBrowser(Canvas& canvas, const FileBrowser& browser);
-void drawLoading(Canvas& canvas, const std::string& filename);
+void drawLoadingPopup(Canvas& canvas, const std::string& filename,
+                      float progress);
 void drawExitPrompt(Canvas& canvas, float progress);
 void drawAxisGizmo(Canvas& canvas, const Camera& camera, const Rect& viewport);
 

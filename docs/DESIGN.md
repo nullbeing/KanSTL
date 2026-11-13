@@ -9,7 +9,7 @@
 - Device measurement (CM0, 12,000 triangles): solid 7.8 ms/frame (~128 fps),
   wireframe 12.6 ms/frame (~79 fps); interactive rendering is paced at ~60 fps
 - M3 complete: in-app file browser, remembered last directory, file sizes,
-  loading frame and load-error messages
+  modal loading popup with progress and load-error messages
 - M4 in progress: EDGES (feature + silhouette lines), MATCAP shading and a
   render-style pill; decimation, quality modes and packaging assets remain
 - Device measurement (23,776 triangles): edges 17.8 ms/frame (~56 fps),
@@ -168,8 +168,9 @@ R            reload
 ```
 
 It lists folders and `.stl` files only, shows file sizes, remembers the last
-directory and selection in `~/.config/stlviewer/last_dir`, and displays a
-loading frame plus load errors without leaving the browser.
+directory and selection in `~/.config/stlviewer/last_dir`, and overlays a
+modal loading popup with a progress bar plus load errors without leaving the
+browser.
 
 ## Packaging (later)
 

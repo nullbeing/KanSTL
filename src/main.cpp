@@ -508,12 +508,31 @@ int runInteractive(const Options& options) {
     };
 
     auto openModel = [&](const std::string& path) {
-        drawLoading(canvas, std::filesystem::path(path).filename().string());
-        framebuffer.present(canvas);
+        const std::string filename =
+            std::filesystem::path(path).filename().string();
 
+        drawBrowser(canvas, browser);
+        const Canvas background = canvas;
+
+        auto last_update = std::chrono::steady_clock::now();
+        bool first_update = true;
+        auto on_progress = [&](float value) {
+            const auto now = std::chrono::steady_clock::now();
+            if (!first_update && value < 1.0f &&
+                now - last_update < std::chrono::milliseconds(50)) {
+                return;
+            }
+            canvas = background;
+            drawLoadingPopup(canvas, filename, value);
+            framebuffer.present(canvas);
+            last_update = now;
+            first_update = false;
+        };
+
+        on_progress(0.0f);
         Mesh loaded;
         std::string load_error;
-        if (!loadStl(path, loaded, load_error)) {
+        if (!loadStl(path, loaded, load_error, on_progress)) {
             browser.setError("LOAD FAILED: " + load_error);
             dirty = true;
             return false;

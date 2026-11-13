@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,8 @@ struct Mesh {
 };
 
 // Loads a binary or ASCII STL file. Returns false and fills `error` on failure.
-bool loadStl(const std::string& path, Mesh& mesh, std::string& error);
+// `progress` is called with 0.0..1.0 while parsing, when provided.
+bool loadStl(const std::string& path, Mesh& mesh, std::string& error,
+             const std::function<void(float)>& progress = {});
 
 #endif  // STLVIEWER_STL_LOADER_H

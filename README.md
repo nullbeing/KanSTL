@@ -16,6 +16,7 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 
 - In-app file browser: browse folders, open `.stl` files, remembers the last
   directory, shows file sizes and load errors
+- Modal loading popup with filename, progress bar and percentage
 - Esc-to-exit needs a deliberate 3 second hold, with an on-screen progress bar
 - Binary and ASCII STL loading, model centered and scaled automatically
 - Solid flat shading with a z-buffer and backface culling
@@ -144,6 +145,10 @@ directory.
 
 Only folders and `.stl` files are listed. The last directory and file selection
 are remembered in `~/.config/stlviewer/last_dir`.
+
+Opening a model shows a modal progress popup:
+
+![Loading](docs/images/loading.png)
 
 ## Viewer controls
 

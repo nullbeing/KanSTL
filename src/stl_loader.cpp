@@ -51,7 +51,8 @@ void fixWinding(std::vector<Vec3>& vertices) {
 }
 
 bool loadBinary(const std::string& path, uint32_t count, Mesh& mesh,
-                std::string& error) {
+                std::string& error,
+                const std::function<void(float)>& progress) {
     std::ifstream in(path, std::ios::binary);
     if (!in) {
         error = "cannot open file";
@@ -76,11 +77,18 @@ bool loadBinary(const std::string& path, uint32_t count, Mesh& mesh,
         mesh.vertices.push_back(a);
         mesh.vertices.push_back(b);
         mesh.vertices.push_back(c);
+
+        if (progress && (i & 0x7FFu) == 0) {
+            progress(0.8f * static_cast<float>(i) /
+                     static_cast<float>(count));
+        }
     }
     return true;
 }
 
-bool loadAscii(const std::string& path, Mesh& mesh, std::string& error) {
+bool loadAscii(const std::string& path, Mesh& mesh, std::string& error,
+               const std::function<void(float)>& progress,
+               uintmax_t file_size) {
     std::ifstream in(path);
     if (!in) {
         error = "cannot open file";
@@ -104,6 +112,13 @@ bool loadAscii(const std::string& path, Mesh& mesh, std::string& error) {
         if (raw.size() / 3 > kMaxTriangles) {
             error = "model exceeds the 2,000,000 triangle limit";
             return false;
+        }
+        if (progress && file_size > 0 && (raw.size() & 0xFFFu) == 0) {
+            const auto position = in.tellg();
+            if (position >= 0) {
+                progress(0.8f * static_cast<float>(position) /
+                         static_cast<float>(file_size));
+            }
         }
     }
 
@@ -148,7 +163,8 @@ void computeNormals(Mesh& mesh) {
     }
 }
 
-void computeTopology(Mesh& mesh) {
+void computeTopology(Mesh& mesh,
+                     const std::function<void(float)>& progress) {
     struct EdgeFaces {
         uint32_t f0 = 0xFFFFFFFFu;
         uint32_t f1 = 0xFFFFFFFFu;
@@ -176,6 +192,10 @@ void computeTopology(Mesh& mesh) {
         } else {
             corner[i] = found->second;
         }
+        if (progress && (i & 0x3FFFu) == 0 && !mesh.vertices.empty()) {
+            progress(0.86f + 0.06f * static_cast<float>(i) /
+                                  static_cast<float>(mesh.vertices.size()));
+        }
     }
 
     std::map<std::pair<uint32_t, uint32_t>, EdgeFaces> edges;
@@ -197,11 +217,16 @@ void computeTopology(Mesh& mesh) {
         add_edge(a, b, static_cast<uint32_t>(t));
         add_edge(b, c, static_cast<uint32_t>(t));
         add_edge(c, a, static_cast<uint32_t>(t));
+        if (progress && (t & 0x1FFFu) == 0) {
+            progress(0.92f + 0.05f * static_cast<float>(t) /
+                                  static_cast<float>(mesh.triangleCount()));
+        }
     }
 
     // 40 degrees: flat panel borders and sharp creases, but not the small
     // angle between adjacent facets of a smooth sphere.
     constexpr float kCosLimit = 0.7660f;
+    size_t edge_index = 0;
     for (const auto& item : edges) {
         const EdgeFaces& info = item.second;
         bool feature = info.count != 2;
@@ -213,6 +238,11 @@ void computeTopology(Mesh& mesh) {
         }
         mesh.edges.push_back({item.first.first, item.first.second, info.f0,
                               info.f1, feature});
+        if (progress && (edge_index & 0x3FFFu) == 0 && !edges.empty()) {
+            progress(0.97f + 0.03f * static_cast<float>(edge_index) /
+                                  static_cast<float>(edges.size()));
+        }
+        ++edge_index;
     }
 }
 
@@ -249,7 +279,8 @@ void normalize(Mesh& mesh) {
 
 }  // namespace
 
-bool loadStl(const std::string& path, Mesh& mesh, std::string& error) {
+bool loadStl(const std::string& path, Mesh& mesh, std::string& error,
+             const std::function<void(float)>& progress) {
     std::error_code ec;
     uintmax_t file_size = std::filesystem::file_size(path, ec);
     if (ec) {
@@ -260,6 +291,7 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error) {
         error = "file is too small to be an STL";
         return false;
     }
+    if (progress) progress(0.0f);
 
     mesh = Mesh{};
     mesh.name = std::filesystem::path(path).filename().string();
@@ -301,19 +333,27 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error) {
     }
 
     if (binary) {
-        if (!loadBinary(path, binary_count, mesh, error)) return false;
+        if (!loadBinary(path, binary_count, mesh, error, progress)) {
+            return false;
+        }
     } else {
-        if (!loadAscii(path, mesh, error)) return false;
+        if (!loadAscii(path, mesh, error, progress, file_size)) return false;
     }
 
     if (mesh.vertices.empty()) {
         error = "no valid triangles found";
         return false;
     }
+    if (progress) progress(0.80f);
 
     fixWinding(mesh.vertices);
     normalize(mesh);
+    if (progress) progress(0.84f);
+
     computeNormals(mesh);
-    computeTopology(mesh);
+    if (progress) progress(0.86f);
+
+    computeTopology(mesh, progress);
+    if (progress) progress(1.0f);
     return true;
 }

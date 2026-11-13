@@ -356,20 +356,43 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     }
 }
 
-void drawLoading(Canvas& canvas, const std::string& filename) {
+void drawLoadingPopup(Canvas& canvas, const std::string& filename,
+                      float progress) {
     const int w = canvas.width();
     const int h = canvas.height();
-    canvas.clear(Theme::kBackground);
+    const int panel_w = 248;
+    const int panel_h = 78;
+    const int radius = 8;
+    const int px = (w - panel_w) / 2;
+    const int py = (h - panel_h) / 2;
 
-    const std::string title = "LOADING";
-    canvas.text((w - canvas.textWidth(title)) / 2, h / 2 - 18, title,
-                Theme::kAccent);
-    const std::string name = truncate(filename, 44);
-    canvas.text((w - canvas.textWidth(name)) / 2, h / 2, name,
+    drawSoftShadow(canvas, px, py, panel_w, panel_h, radius);
+    fillRoundRect(canvas, px, py, panel_w, panel_h, radius,
+                  Theme::kDialogBorder);
+    fillRoundRect(canvas, px + 1, py + 1, panel_w - 2, panel_h - 2,
+                  radius - 1, Theme::kDialogBackground);
+
+    canvas.text(px + 12, py + 9, "LOADING", Theme::kAccent);
+    canvas.text(px + 12, py + 25, truncate(filename, 36),
                 Theme::kTextBright);
-    const std::string wait = "PLEASE WAIT";
-    canvas.text((w - canvas.textWidth(wait)) / 2, h / 2 + 16, wait,
-                Theme::kTextDim);
+
+    const int bar_x = px + 12;
+    const int bar_y = py + 45;
+    const int bar_w = panel_w - 24;
+    const int bar_h = 8;
+    canvas.fillRect(bar_x, bar_y, bar_w, bar_h, Theme::kBarBorder);
+
+    progress = std::max(0.0f, std::min(1.0f, progress));
+    const int fill = static_cast<int>(bar_w * progress);
+    if (fill > 0) {
+        canvas.fillRect(bar_x, bar_y, fill, bar_h, Theme::kAccent);
+    }
+
+    char percent[16];
+    std::snprintf(percent, sizeof(percent), "%d%%",
+                  static_cast<int>(progress * 100.0f + 0.5f));
+    drawTextRight(canvas, px + panel_w - 12, py + 58, percent,
+                  Theme::kText);
 }
 
 void drawAxisGizmo(Canvas& canvas, const Camera& camera,
