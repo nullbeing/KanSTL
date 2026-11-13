@@ -130,9 +130,9 @@ void drawSoftShadow(Canvas& canvas, int px, int py, int w, int h,
 void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
                    const std::string& label, uint16_t background) {
     const int text_width = canvas.textWidth(label);
-    const int width = text_width + 9;
+    const int width = text_width + 11;
     const int x = center_x - width / 2;
-    const int radius = 3;
+    const int radius = height / 2;
 
     // Drop shadow and a dark rim make the key look raised off the render.
     fillRoundRectBlend(canvas, x + 1, y + 2, width - 1, height, radius,
@@ -141,15 +141,12 @@ void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
                        0.18f);
 
     const uint16_t rim = lerp565(background, 0x0000, 0.55f);
-    const uint16_t top = lerp565(background, 0xFFFF, 0.45f);
-    const uint16_t bottom = lerp565(background, 0x0000, 0.12f);
+    const uint16_t top = lerp565(background, 0xFFFF, 0.70f);
+    const uint16_t bottom = lerp565(background, 0x0000, 0.15f);
 
     fillRoundRect(canvas, x, y, width, height, radius, rim);
     fillRoundRectGradient(canvas, x + 1, y + 1, width - 2, height - 2,
                           radius - 1, top, bottom);
-    // Specular hem along the top edge of the face.
-    fillRoundRect(canvas, x + 2, y + 1, width - 4, 1, 0,
-                  lerp565(top, 0xFFFF, 0.5f));
 
     canvas.text(x + (width - text_width) / 2, y + (height - 8 + 1) / 2, label,
                 Theme::kPillText);
