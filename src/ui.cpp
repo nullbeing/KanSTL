@@ -1,6 +1,8 @@
 #include "ui.h"
 
 #include <algorithm>
+
+#include "font.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -299,9 +301,19 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
 
     canvas.text(kTextLeft, kTextTop, displayPath(browser.directory()),
                 Theme::kTextBright);
-    drawTextRight(canvas, w - 4, kTextTop, count_text, Theme::kText);
+    drawTextRight(canvas, w - 4, kTextTop, count_text, 0xFE60);
 
     // Rows.
+    constexpr uint16_t kFolderColor = Theme::kAccent;
+    constexpr uint16_t kFileSmall = 0xBDF7;
+    constexpr uint16_t kFileMedium = 0x9FE6;
+    constexpr uint16_t kFileLarge = 0xFE60;
+    constexpr uint16_t kSelectedBg = 0x032F;
+    constexpr uint16_t kSelectedText = 0xFFFF;
+    constexpr uint16_t kSelectedDim = 0xCE79;
+    constexpr uint64_t kMediumSize = 256ULL * 1024ULL;
+    constexpr uint64_t kLargeSize = 4ULL * 1024ULL * 1024ULL;
+
     const int list_top = kStatusHeight;
     for (int row = 0; row < kBrowserRows; ++row) {
         const int index = browser.scroll() + row;
@@ -311,20 +323,33 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         const int y = list_top + row * kRowHeight;
         const bool selected = index == browser.selection();
 
+        uint16_t row_color = kFileSmall;
+        if (entry.is_directory) {
+            row_color = entry.name == ".." ? Theme::kTextDim : kFolderColor;
+        } else if (entry.size >= kLargeSize) {
+            row_color = kFileLarge;
+        } else if (entry.size >= kMediumSize) {
+            row_color = kFileMedium;
+        }
+
         if (selected) {
-            canvas.fillRect(0, y, w, kRowHeight, 0x2945);
+            canvas.fillRect(0, y, w, kRowHeight, kSelectedBg);
+            canvas.fillRect(0, y, 2, kRowHeight, Theme::kAccent);
             canvas.text(3, y + 2, ">", Theme::kAccent);
+        } else {
+            canvas.fillRect(3, y + 2, 2, 7, row_color);
         }
 
         std::string name = entry.name;
         if (entry.is_directory && name != "..") name += "/";
 
         canvas.text(12, y + 2, truncate(name, 39),
-                    entry.is_directory ? Theme::kAccent : Theme::kTextBright);
+                    selected ? kSelectedText : row_color);
 
         const std::string right =
             entry.is_directory ? std::string("DIR") : humanSize(entry.size);
-        drawTextRight(canvas, w - 4, y + 2, right, Theme::kTextDim);
+        drawTextRight(canvas, w - 4, y + 2, right,
+                      selected ? kSelectedDim : Theme::kTextDim);
     }
 
     bool has_files = false;
@@ -349,10 +374,15 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         canvas.text(kTextLeft, hint_y + kTextTop,
                     truncate(browser.error(), 52), 0xF800);
     } else {
-        canvas.text(kTextLeft, hint_y + kTextTop,
-                    "ENT OPEN  <- UP  R REFRESH", Theme::kText);
-        drawTextRight(canvas, w - 4, hint_y + kTextTop, "HOLD 3S EXIT",
-                      Theme::kTextDim);
+        int x = kTextLeft;
+        const int y = hint_y + kTextTop;
+        canvas.text(x, y, "ENTER", Theme::kAccent);
+        x += 5 * FONT_6X8_WIDTH;
+        canvas.text(x, y, " open  ", Theme::kText);
+        x += 7 * FONT_6X8_WIDTH;
+        canvas.text(x, y, "R", 0xFE60);
+        x += FONT_6X8_WIDTH;
+        canvas.text(x, y, " refresh", Theme::kText);
     }
 }
 
