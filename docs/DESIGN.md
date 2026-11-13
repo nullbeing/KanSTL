@@ -143,6 +143,10 @@ R            reset view and center
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
 ```
 
+Models are fitted to the viewport on load. `R` returns to that fitted home
+view, `0` refits the current orientation, and an explicit `--zoom` disables
+the automatic fit.
+
 The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.

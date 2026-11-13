@@ -46,6 +46,7 @@ struct Options {
     float yaw = -30.0f;
     float pitch = 20.0f;
     float zoom = 1.0f;
+    bool zoom_set = false;
     int bench_frames = 0;
     bool no_ui = false;
     bool auto_start = false;
@@ -130,6 +131,7 @@ bool parseArgs(int argc, char** argv, Options& options, std::string& error) {
                 error = "invalid --zoom value";
                 return false;
             }
+            options.zoom_set = true;
         } else if (arg == "--bench") {
             options.bench_frames = 200;
             int frames = 0;
@@ -423,7 +425,7 @@ int runInteractive(const Options& options) {
     Renderer renderer;
 
     Camera camera{options.yaw, options.pitch, options.zoom};
-    const Camera home_camera = camera;
+    Camera home_camera = camera;
 
     Mesh mesh;
     bool have_model = false;
@@ -447,6 +449,11 @@ int runInteractive(const Options& options) {
         if (loadStl(initial, mesh, load_error)) {
             have_model = true;
             current_path = initial;
+            if (!options.zoom_set) {
+                camera.zoom = fittedZoom(
+                    mesh, camera, activeViewport(canvas, options.no_ui));
+                home_camera.zoom = camera.zoom;
+            }
             std::fprintf(stderr, "model: %s, %zu triangles\n",
                          mesh.name.c_str(), mesh.triangleCount());
         } else {
@@ -542,6 +549,11 @@ int runInteractive(const Options& options) {
         have_model = true;
         current_path = path;
         camera = home_camera;
+        if (!options.zoom_set) {
+            camera.zoom = fittedZoom(
+                mesh, camera, activeViewport(canvas, options.no_ui));
+            home_camera.zoom = camera.zoom;
+        }
         fps = 0;
         help = false;
         toast.clear();

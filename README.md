@@ -18,7 +18,8 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
   directory, shows file sizes and load errors
 - Modal loading popup with filename, progress bar and percentage
 - Esc-to-exit needs a deliberate 3 second hold, with an on-screen progress bar
-- Binary and ASCII STL loading, model centered and scaled automatically
+- Binary and ASCII STL loading, model centered and fitted to the viewport
+  automatically (use `--zoom` to override)
 - Solid flat shading with a z-buffer and backface culling
 - EDGES mode: solid faces with dark crease lines and a bright silhouette
 - MATCAP mode: metallic normal-map shading with a specular highlight
