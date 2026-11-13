@@ -168,14 +168,14 @@ std::string humanSize(uint64_t bytes) {
 const char* styleName(RenderMode style) {
     switch (style) {
         case RenderMode::Edges:
-            return "edges";
+            return "EDGES";
         case RenderMode::Matcap:
-            return "matcap";
+            return "MATCAP";
         case RenderMode::Wireframe:
-            return "wire";
+            return "WIRE";
         case RenderMode::Solid:
         default:
-            return "solid";
+            return "SOLID";
     }
 }
 
@@ -267,13 +267,13 @@ void drawUi(Canvas& canvas, const UiState& state) {
     // The buttons and their key guides would collide with the help panel.
     if (!state.help) {
         // Auto-rotate toggle aligned with the "6" key (x=161).
-        std::string auto_label = "auto";
+        std::string auto_label = "AUTO";
         if (state.auto_mode == AutoRotateMode::X) {
-            auto_label = "auto x";
+            auto_label = "AUTO X";
         } else if (state.auto_mode == AutoRotateMode::Y) {
-            auto_label = "auto y";
+            auto_label = "AUTO Y";
         } else if (state.auto_mode == AutoRotateMode::Z) {
-            auto_label = "auto z";
+            auto_label = "AUTO Z";
         }
         drawLabelPill(canvas, 161, pill_y, pill_h, auto_label,
                       state.auto_mode == AutoRotateMode::Off
@@ -286,7 +286,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
                       Theme::kPillBackground);
 
         // Files button aligned with the "8" key (x=273).
-        drawLabelPill(canvas, 273, pill_y, pill_h, "files",
+        drawLabelPill(canvas, 273, pill_y, pill_h, "FILES",
                       Theme::kPillBackground);
 
     }
