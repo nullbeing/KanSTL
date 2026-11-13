@@ -262,30 +262,40 @@ void drawUi(Canvas& canvas, const UiState& state) {
               0x3C7F);
 
     const int pill_h = 12;
-    const int pill_y = hint_y - 2;
+    const int pill_y = hint_y - 8;
 
-    // Auto-rotate toggle aligned with the "6" key (x=161).
-    std::string auto_label = "auto";
-    if (state.auto_mode == AutoRotateMode::X) {
-        auto_label = "auto x";
-    } else if (state.auto_mode == AutoRotateMode::Y) {
-        auto_label = "auto y";
-    } else if (state.auto_mode == AutoRotateMode::Z) {
-        auto_label = "auto z";
+    // The buttons and their key guides would collide with the help panel.
+    if (!state.help) {
+        // Auto-rotate toggle aligned with the "6" key (x=161).
+        std::string auto_label = "auto";
+        if (state.auto_mode == AutoRotateMode::X) {
+            auto_label = "auto x";
+        } else if (state.auto_mode == AutoRotateMode::Y) {
+            auto_label = "auto y";
+        } else if (state.auto_mode == AutoRotateMode::Z) {
+            auto_label = "auto z";
+        }
+        drawLabelPill(canvas, 161, pill_y, pill_h, auto_label,
+                      state.auto_mode == AutoRotateMode::Off
+                          ? Theme::kPillBackground
+                          : Theme::kPillActive);
+
+        // Render style button aligned with the "7" key (x=217).
+        const std::string style_label = styleName(state.style);
+        drawLabelPill(canvas, 217, pill_y, pill_h, style_label,
+                      Theme::kPillBackground);
+
+        // Files button aligned with the "8" key (x=273).
+        drawLabelPill(canvas, 273, pill_y, pill_h, "files",
+                      Theme::kPillBackground);
+
+        // 1px guides pointing down at the physical 6 / 7 / 8 keys.
+        constexpr int kKeyGuides[] = {161, 217, 273};
+        const int guide_top = pill_y + pill_h;
+        for (int x : kKeyGuides) {
+            canvas.fillRect(x, guide_top, 1, h - guide_top, 0x52AA);
+        }
     }
-    drawLabelPill(canvas, 161, pill_y, pill_h, auto_label,
-                  state.auto_mode == AutoRotateMode::Off
-                      ? Theme::kPillBackground
-                      : Theme::kPillActive);
-
-    // Render style button aligned with the "7" key (x=217).
-    const std::string style_label = styleName(state.style);
-    drawLabelPill(canvas, 217, pill_y, pill_h, style_label,
-                  Theme::kPillBackground);
-
-    // Files button aligned with the "8" key (x=273).
-    drawLabelPill(canvas, 273, pill_y, pill_h, "files",
-                  Theme::kPillBackground);
 
     // Transient toast (screenshot saved, etc.), styled like the other popups.
     if (!state.toast.empty()) {
@@ -294,7 +304,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
         const int panel_h = 18;
         const int radius = 5;
         const int px = (w - panel_w) / 2;
-        const int py = hint_y - panel_h - 6;
+        const int py = pill_y - panel_h - 6;
 
         drawSoftShadow(canvas, px, py, panel_w, panel_h, radius);
         fillRoundRect(canvas, px, py, panel_w, panel_h, radius,

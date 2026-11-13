@@ -183,7 +183,9 @@ buttons float directly over the render. The axis text gets a one-pixel dark drop
 contrast. A tap on `6` cycles the auto modes on key release; holding it for
 0.6 s stops auto-rotate while the key is still down. The buttons are fully
 rounded pills with a dark rim, a vertical face gradient, a bright top edge
-and a soft drop shadow. The auto-rotate toggle sits at x=161 (`auto`, `auto x`,
+and a soft drop shadow. Each drops a 1px guide line to the bottom edge,
+pointing at the physical 6 / 7 / 8 key below the display; the buttons and
+guides are hidden while the help overlay is open. The auto-rotate toggle sits at x=161 (`auto`, `auto x`,
 `auto y`, `auto z`; mint green when running) under the `6` key, a render-style
 button at x=217 (`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a
 `files` button at x=273 under the `8` key. `8` opens the file browser. The 3D
