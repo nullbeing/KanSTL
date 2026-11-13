@@ -121,6 +121,11 @@ Planned optimizations, in order:
 
 - Binary layout: 80-byte header + `uint32` count + 50 bytes per triangle.
   Detect by file size `84 + 50*n`, not by the `solid` prefix.
+- If the size and header count disagree, sample facet records (unit normals,
+  zero attribute bytes) to recognize binary data anyway. A count of zero is
+  inferred from the payload; a count larger than the payload reports
+  `truncated STL: <present> of <declared> triangles` instead of falling
+  through to the ASCII parser.
 - ASCII STL fallback: slower; parse in a background thread with progress.
 - `mmap` large binary files and reference triangles directly.
 - Normalize at load: center AABB, scale to fit, recompute degenerate normals,

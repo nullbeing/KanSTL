@@ -458,6 +458,7 @@ int runInteractive(const Options& options) {
                          mesh.name.c_str(), mesh.triangleCount());
         } else {
             startup_error = "LOAD FAILED: " + load_error;
+            std::fprintf(stderr, "%s\n", startup_error.c_str());
         }
     }
 

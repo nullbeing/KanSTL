@@ -151,6 +151,12 @@ Opening a model shows a modal progress popup:
 
 ![Loading](docs/images/loading.png)
 
+If a file fails, the bottom bar explains why. `truncated STL: 248K of 1.91M
+triangles` means the copy is incomplete: the binary header declares more
+facets than the file actually holds. Re-copy or re-download the model; the
+viewer also accepts binary STLs with a missing or wrong header count when the
+facet data itself is intact.
+
 ## Viewer controls
 
 | Key | Action |

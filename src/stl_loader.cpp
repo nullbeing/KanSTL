@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -15,6 +16,58 @@ namespace {
 
 constexpr size_t kMaxTriangles = 2000000;
 constexpr size_t kBinaryHeaderSize = 84;
+
+std::string formatCount(size_t value) {
+    char buffer[24];
+    if (value >= 1000000) {
+        std::snprintf(buffer, sizeof(buffer), "%zu.%02zuM", value / 1000000,
+                      (value / 10000) % 100);
+    } else if (value >= 1000) {
+        std::snprintf(buffer, sizeof(buffer), "%zuK", value / 1000);
+    } else {
+        std::snprintf(buffer, sizeof(buffer), "%zu", value);
+    }
+    return buffer;
+}
+
+// Some exporters omit the leading "solid" keyword and broken downloads can
+// leave the declared triangle count larger than the payload. Sample a few
+// records to tell a binary STL from text even when the size does not match
+// the header count.
+bool looksLikeBinary(const std::string& path, uintmax_t file_size) {
+    if (file_size < kBinaryHeaderSize + 50) return false;
+    std::ifstream in(path, std::ios::binary);
+    if (!in) return false;
+
+    const uintmax_t records = (file_size - kBinaryHeaderSize) / 50;
+    constexpr int kSamples = 64;
+    int tested = 0;
+    int valid = 0;
+    char record[50];
+    for (int sample = 0; sample < kSamples; ++sample) {
+        const uintmax_t index =
+            records > 1 ? (records - 1) * static_cast<uintmax_t>(sample) /
+                              (kSamples - 1)
+                        : 0;
+        in.seekg(static_cast<std::streamoff>(kBinaryHeaderSize + index * 50));
+        if (!in.read(record, sizeof(record))) break;
+
+        float normal[3];
+        std::memcpy(normal, record, sizeof(normal));
+        const float length = std::sqrt(normal[0] * normal[0] +
+                                       normal[1] * normal[1] +
+                                       normal[2] * normal[2]);
+        uint16_t attribute = 0;
+        std::memcpy(&attribute, record + 48, sizeof(attribute));
+
+        ++tested;
+        if (attribute == 0 &&
+            (length < 0.01f || (length > 0.9f && length < 1.1f))) {
+            ++valid;
+        }
+    }
+    return tested > 0 && valid * 5 >= tested * 4;
+}
 
 bool isFinite(const Vec3& v) {
     return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
@@ -58,13 +111,23 @@ bool loadBinary(const std::string& path, uint32_t count, Mesh& mesh,
         error = "cannot open file";
         return false;
     }
+
+    in.seekg(0, std::ios::end);
+    const std::streamoff size = in.tellg();
+    const size_t available =
+        size > static_cast<std::streamoff>(kBinaryHeaderSize)
+            ? static_cast<size_t>((size - kBinaryHeaderSize) / 50)
+            : 0;
     in.seekg(kBinaryHeaderSize);
 
-    mesh.vertices.reserve(static_cast<size_t>(count) * 3);
+    // Truncated files declare far more triangles than they contain; only
+    // reserve what the payload can actually hold.
+    mesh.vertices.reserve(std::min<size_t>(count, available) * 3);
     char record[50];
     for (uint32_t i = 0; i < count; ++i) {
         if (!in.read(record, sizeof(record))) {
-            error = "truncated binary STL";
+            error = "truncated STL: " + formatCount(i) + " of " +
+                    formatCount(count) + " triangles";
             return false;
         }
         float values[12];
@@ -330,6 +393,22 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error,
         !starts_with_solid) {
         error = "model exceeds the 2,000,000 triangle limit";
         return false;
+    }
+
+    // Header count and file size disagree: either the count is missing or the
+    // file was cut short. If the payload still looks like facet records, keep
+    // treating it as binary so the error explains the truncation.
+    if (!binary && !starts_with_solid && looksLikeBinary(path, file_size)) {
+        const uintmax_t available =
+            (file_size - kBinaryHeaderSize) / 50;
+        binary = true;
+        if (binary_count == 0) {
+            if (available > kMaxTriangles) {
+                error = "model exceeds the 2,000,000 triangle limit";
+                return false;
+            }
+            binary_count = static_cast<uint32_t>(available);
+        }
     }
 
     if (binary) {
