@@ -253,10 +253,13 @@ float fittedZoom(const Mesh& mesh, const Camera& camera, const Rect& viewport) {
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch =
         camera.pitch_deg * 3.14159265358979323846f / 180.0f;
+    const float roll = camera.roll_deg * 3.14159265358979323846f / 180.0f;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
+    const float cr = std::cos(roll);
+    const float sr = std::sin(roll);
 
     float max_x = 0.0f;
     float max_y = 0.0f;
@@ -264,8 +267,10 @@ float fittedZoom(const Mesh& mesh, const Camera& camera, const Rect& viewport) {
         const float y1 = v.y * cp - v.z * sp;
         const float z1 = v.y * sp + v.z * cp;
         const float x2 = v.x * cy + z1 * sy;
-        max_x = std::max(max_x, std::fabs(x2));
-        max_y = std::max(max_y, std::fabs(y1));
+        const float xr = x2 * cr - y1 * sr;
+        const float yr = x2 * sr + y1 * cr;
+        max_x = std::max(max_x, std::fabs(xr));
+        max_y = std::max(max_y, std::fabs(yr));
     }
     if (max_x < 1e-6f || max_y < 1e-6f) return 1.0f;
 
@@ -311,18 +316,23 @@ bool isArrowKey(Key key) {
 void applyPivotKey(Key key, Camera& camera) {
     const float yaw = camera.yaw_deg * 3.14159265358979323846f / 180.0f;
     const float pitch = camera.pitch_deg * 3.14159265358979323846f / 180.0f;
+    const float roll = camera.roll_deg * 3.14159265358979323846f / 180.0f;
     const float cp = std::cos(pitch);
     const float sp = std::sin(pitch);
     const float cy = std::cos(yaw);
     const float sy = std::sin(yaw);
+    const float cr = std::cos(roll);
+    const float sr = std::sin(roll);
 
-    // Screen right/up converted back to model space.
-    const float rx = cy;
-    const float ry = sy * sp;
-    const float rz = sy * cp;
-    const float ux = 0.0f;
-    const float uy = cp;
-    const float uz = -sp;
+    // Screen right/up converted back to model space, including roll.
+    const float rx = cr * cy;
+    const float r_z1 = cr * sy;
+    const float ry = -sr * cp + r_z1 * sp;
+    const float rz = sr * sp + r_z1 * cp;
+    const float ux = sr * cy;
+    const float u_z1 = sr * sy;
+    const float uy = cr * cp + u_z1 * sp;
+    const float uz = -cr * sp + u_z1 * cp;
     const float step = 0.05f;
 
     if (key == Key::Left) {
@@ -421,7 +431,7 @@ int runInteractive(const Options& options) {
     bool have_model = false;
     std::string current_path;
     AutoRotateMode auto_mode =
-        options.auto_start ? AutoRotateMode::Horizontal : AutoRotateMode::Off;
+        options.auto_start ? AutoRotateMode::Y : AutoRotateMode::Off;
     RenderMode style = options.style;
 
     std::string initial = options.file;
@@ -540,11 +550,19 @@ int runInteractive(const Options& options) {
             dirty = true;
         } else if (key == Key::Auto) {
             if (auto_mode == AutoRotateMode::Off) {
-                auto_mode = AutoRotateMode::Horizontal;
-            } else if (auto_mode == AutoRotateMode::Horizontal) {
-                auto_mode = AutoRotateMode::Vertical;
+                auto_mode = AutoRotateMode::X;
+                camera.roll_deg = 0.0f;
+            } else if (auto_mode == AutoRotateMode::X) {
+                auto_mode = AutoRotateMode::Y;
+                camera.pitch_deg = home_camera.pitch_deg;
+                camera.roll_deg = 0.0f;
+            } else if (auto_mode == AutoRotateMode::Y) {
+                auto_mode = AutoRotateMode::Z;
+                camera.pitch_deg = home_camera.pitch_deg;
+                camera.roll_deg = 0.0f;
             } else {
                 auto_mode = AutoRotateMode::Off;
+                camera.roll_deg = 0.0f;
             }
             dirty = true;
         } else if (key == Key::Style) {
@@ -728,14 +746,18 @@ int runInteractive(const Options& options) {
             auto_mode != AutoRotateMode::Off) {
             const float step =
                 static_cast<float>(std::min(dt, 0.1));
-            if (auto_mode == AutoRotateMode::Horizontal) {
-                camera.yaw_deg += 35.0f * step;
-                while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
-            } else {
-                // Continuous forward tumble around the pitch axis.
+            if (auto_mode == AutoRotateMode::X) {
                 camera.pitch_deg += 30.0f * step;
                 while (camera.pitch_deg > 180.0f) camera.pitch_deg -= 360.0f;
                 while (camera.pitch_deg < -180.0f) camera.pitch_deg += 360.0f;
+            } else if (auto_mode == AutoRotateMode::Y) {
+                camera.yaw_deg += 35.0f * step;
+                while (camera.yaw_deg > 180.0f) camera.yaw_deg -= 360.0f;
+                while (camera.yaw_deg < -180.0f) camera.yaw_deg += 360.0f;
+            } else {
+                camera.roll_deg += 50.0f * step;
+                while (camera.roll_deg > 180.0f) camera.roll_deg -= 360.0f;
+                while (camera.roll_deg < -180.0f) camera.roll_deg += 360.0f;
             }
             dirty = true;
         }
