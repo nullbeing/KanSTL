@@ -204,8 +204,9 @@ rounded, shadowed panel above the bottom bar, centered and sized to their
 text.
 
 File browser (first start opens `$HOME`, then the last used directory). The
-embedded app icon is drawn as a 144x144 alpha-blended watermark behind the
-list rows, using nearest-neighbour scaling so it stays pixel-sharp:
+embedded app icon is drawn as a 104x104 watermark behind the list rows. It is
+first reduced to a 16x16 colour/coverage cache and then bilinearly sampled, so
+the sprite reads as a soft blurred backdrop rather than a crisp icon:
 
 ```text
 Up/Down      select

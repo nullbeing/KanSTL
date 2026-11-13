@@ -372,19 +372,92 @@ void drawUi(Canvas& canvas, const UiState& state) {
 void drawIconWatermark(Canvas& canvas, int center_x, int center_y, int size,
                        float alpha) {
     if (size <= 0) return;
+
+    // Downsample the icon once into a 16x16 coverage/colour cache; bilinear
+    // sampling from that cache gives the watermark a soft, blurred look.
+    constexpr int kBlurSize = 16;
+    static float cache[kBlurSize * kBlurSize * 4];
+    static bool cache_ready = false;
+    if (!cache_ready) {
+        constexpr int kBlock = kAppIconSize / kBlurSize;
+        for (int cy = 0; cy < kBlurSize; ++cy) {
+            for (int cx = 0; cx < kBlurSize; ++cx) {
+                float r = 0.0f;
+                float g = 0.0f;
+                float b = 0.0f;
+                float covered = 0.0f;
+                for (int y = 0; y < kBlock; ++y) {
+                    for (int x = 0; x < kBlock; ++x) {
+                        const uint16_t color =
+                            kAppIcon[(cy * kBlock + y) * kAppIconSize +
+                                     cx * kBlock + x];
+                        if (color == 0) continue;
+                        r += static_cast<float>((color >> 11) & 31);
+                        g += static_cast<float>((color >> 5) & 63);
+                        b += static_cast<float>(color & 31);
+                        covered += 1.0f;
+                    }
+                }
+                float* out = &cache[(cy * kBlurSize + cx) * 4];
+                if (covered > 0.0f) {
+                    out[0] = r / covered;
+                    out[1] = g / covered;
+                    out[2] = b / covered;
+                    out[3] = covered / (kBlock * kBlock);
+                } else {
+                    out[3] = 0.0f;
+                }
+            }
+        }
+        cache_ready = true;
+    }
+
     const int x0 = center_x - size / 2;
     const int y0 = center_y - size / 2;
+    const float scale = static_cast<float>(kBlurSize) /
+                        static_cast<float>(size);
+
     for (int y = 0; y < size; ++y) {
-        const int sy = y * kAppIconSize / size;
+        const float sy = (static_cast<float>(y) + 0.5f) * scale - 0.5f;
+        const int y1 = static_cast<int>(std::floor(sy));
+        const float fy = sy - static_cast<float>(y1);
         for (int x = 0; x < size; ++x) {
-            const int sx = x * kAppIconSize / size;
-            const uint16_t color = kAppIcon[sy * kAppIconSize + sx];
-            if (color == 0) continue;
-            canvas.blendPixel(x0 + x, y0 + y, color, alpha);
+            const float sx = (static_cast<float>(x) + 0.5f) * scale - 0.5f;
+            const int x1 = static_cast<int>(std::floor(sx));
+            const float fx = sx - static_cast<float>(x1);
+
+            float r = 0.0f;
+            float g = 0.0f;
+            float b = 0.0f;
+            float coverage = 0.0f;
+            for (int dy = 0; dy < 2; ++dy) {
+                const int ty = y1 + dy;
+                if (ty < 0 || ty >= kBlurSize) continue;
+                const float wy = dy == 0 ? 1.0f - fy : fy;
+                if (wy <= 0.0f) continue;
+                for (int dx = 0; dx < 2; ++dx) {
+                    const int tx = x1 + dx;
+                    if (tx < 0 || tx >= kBlurSize) continue;
+                    const float wx = dx == 0 ? 1.0f - fx : fx;
+                    if (wx <= 0.0f) continue;
+                    const float* sample = &cache[(ty * kBlurSize + tx) * 4];
+                    const float w = wx * wy;
+                    r += w * sample[0] * sample[3];
+                    g += w * sample[1] * sample[3];
+                    b += w * sample[2] * sample[3];
+                    coverage += w * sample[3];
+                }
+            }
+            if (coverage <= 0.004f) continue;
+
+            const uint16_t color = static_cast<uint16_t>(
+                (static_cast<int>(std::lround(r / coverage)) << 11) |
+                (static_cast<int>(std::lround(g / coverage)) << 5) |
+                static_cast<int>(std::lround(b / coverage)));
+            canvas.blendPixel(x0 + x, y0 + y, color, alpha * coverage);
         }
     }
 }
-
 void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
     const int w = canvas.width();
     const int h = canvas.height();
@@ -393,7 +466,7 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
 
     // Faded app icon behind the file list.
     drawIconWatermark(canvas, w / 2,
-                      (kStatusHeight + h - kHintHeight) / 2, 144, 0.20f);
+                      (kStatusHeight + h - kHintHeight) / 2, 104, 0.24f);
 
     // Top bar: current directory and item count.
     canvas.fillRect(0, 0, w, kStatusHeight, Theme::kBarBackground);
