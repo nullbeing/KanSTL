@@ -15,6 +15,10 @@
 namespace {
 
 constexpr size_t kMaxTriangles = 2000000;
+// Feature-edge topology builds two std::maps over welded vertices and needs
+// several hundred bytes per triangle. On the 512 MB Cardputer Zero that blows
+// past the memory budget, so large meshes are shown without EDGES support.
+constexpr size_t kTopologyTriangleLimit = 500000;
 constexpr size_t kBinaryHeaderSize = 84;
 
 std::string formatCount(size_t value) {
@@ -432,7 +436,14 @@ bool loadStl(const std::string& path, Mesh& mesh, std::string& error,
     computeNormals(mesh);
     if (progress) progress(0.86f);
 
-    computeTopology(mesh, progress);
+    if (mesh.triangleCount() <= kTopologyTriangleLimit) {
+        computeTopology(mesh, progress);
+    } else {
+        mesh.welded_vertices.clear();
+        mesh.edges.clear();
+        std::fprintf(stderr, "topology skipped: %zu triangles\n",
+                     mesh.triangleCount());
+    }
     if (progress) progress(1.0f);
     return true;
 }

@@ -125,8 +125,10 @@ void Renderer::project(const Mesh& mesh, const Camera& camera,
         const float x2 = vx0 * cy + z1 * sy;
         const float z2 = -vx0 * sy + z1 * cy;
 
-        screen_x_[i] = center_x + x2 * scale;
-        screen_y_[i] = center_y - y1 * scale;
+        screen_x_[i] = static_cast<int16_t>(std::lround(
+            std::clamp(center_x + x2 * scale, -32760.0f, 32760.0f)));
+        screen_y_[i] = static_cast<int16_t>(std::lround(
+            std::clamp(center_y - y1 * scale, -32760.0f, 32760.0f)));
         depth_[i] = z2;
     }
 }

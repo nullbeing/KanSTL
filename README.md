@@ -111,10 +111,17 @@ matcap     10.1 ms/frame    ~99 fps   (23.8k triangles)
 The frame rate in the status bar is the rate frames actually reach the panel;
 idle time is excluded.
 
+Very large models are supported but slow. A 1.9 million triangle STL takes
+about 980 ms per frame (~1 fps) and peaks around 135 MB of RAM. To keep that
+within the device's memory budget, feature-edge topology is only built up to
+500,000 triangles; above that the EDGES style is skipped and WIREFRAME is
+disabled past 1,000,000 triangles. Both are noted with a toast.
+
 ## Render styles
 
 `7` cycles solid → edges → matcap → wireframe, and the bottom pill shows the
-active style.
+active style. Styles that need more memory or time than the current model
+allows are skipped.
 
 EDGES:
 

@@ -619,14 +619,39 @@ int runInteractive(const Options& options) {
             auto_mode = next;
             dirty = true;
         } else if (key == Key::Style) {
-            if (style == RenderMode::Solid) {
-                style = RenderMode::Edges;
-            } else if (style == RenderMode::Edges) {
-                style = RenderMode::Matcap;
-            } else if (style == RenderMode::Matcap) {
-                style = RenderMode::Wireframe;
-            } else {
-                style = RenderMode::Solid;
+            auto nextStyle = [](RenderMode current) {
+                switch (current) {
+                    case RenderMode::Solid:
+                        return RenderMode::Edges;
+                    case RenderMode::Edges:
+                        return RenderMode::Matcap;
+                    case RenderMode::Matcap:
+                        return RenderMode::Wireframe;
+                    default:
+                        return RenderMode::Solid;
+                }
+            };
+            // Very large meshes have no feature-edge topology and would take
+            // seconds per wireframe frame, so skip those styles.
+            auto available = [&](RenderMode candidate) {
+                if (candidate == RenderMode::Edges) return !mesh.edges.empty();
+                if (candidate == RenderMode::Wireframe) {
+                    return mesh.triangleCount() <= 1000000;
+                }
+                return true;
+            };
+
+            RenderMode next = nextStyle(style);
+            bool skipped = false;
+            for (int attempt = 0; attempt < 4 && !available(next); ++attempt) {
+                skipped = true;
+                next = nextStyle(next);
+            }
+            style = next;
+            if (skipped) {
+                toast = "EDGES + WIRE N/A FOR BIG MODEL";
+                toast_until = std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(1600);
             }
             dirty = true;
         } else if (key == Key::Files) {

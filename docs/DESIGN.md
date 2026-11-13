@@ -92,7 +92,11 @@ The renderer has no dependency on the UI or on APPLaunch.
 - Flat shading by default; STL is faceted anyway and it is the cheapest mode
 - Two-sided shading (`abs(dot)`) tolerates inconsistent STL normals
 - EDGES: flat fill plus dark crease lines (40 degree threshold) and a bright
-  depth-tested silhouette
+  depth-tested silhouette. Building the welded topology costs roughly 180
+  bytes per triangle, so it is skipped above 500k triangles; EDGES is then
+  unavailable and WIREFRAME is refused above 1M triangles.
+- Projected screen coordinates are stored as `int16_t` with float depth: half
+  the memory of three float arrays, which matters at 5.7 million corners.
 - MATCAP: 32x32 normal lookup with a specular highlight and rim term
 - Ordered 4x4 dithering is a future option to hide RGB565 banding
 - Quality modes: native 320x170, or 160x85 rendered and scaled 2x
@@ -116,6 +120,21 @@ Planned optimizations, in order:
 3. Split the screen into horizontal bands across 4 threads
 4. Vertex clustering decimation for oversized models
 5. `-O3` and NEON-friendly math; avoid per-pixel floating point in the inner loop
+
+## Memory budget
+
+The device has 352 MB of RAM and KanSTL runs with roughly 120-150 MB
+available, so multi-million triangle files need care:
+
+```text
+1.9M triangles   69 MB vertices + 23 MB normals + 46 MB projections
+                 ~135 MB peak, topology skipped, ~980 ms/frame
+447k triangles   ~101 MB peak including feature-edge topology
+```
+
+Feature-edge topology uses two `std::map`s over welded vertices and costs
+around 180 bytes per triangle, so it is capped at 500k triangles. Projection
+buffers use `int16_t` x/y plus float depth to halve their footprint.
 
 ## STL loading
 

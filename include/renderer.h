@@ -52,8 +52,10 @@ private:
     void buildMatcap();
     uint16_t matcapColor(float nx, float ny) const;
 
-    std::vector<float> screen_x_;
-    std::vector<float> screen_y_;
+    // 16-bit screen coordinates keep the projection buffers small enough for
+    // multi-million-triangle models on the 512 MB device.
+    std::vector<int16_t> screen_x_;
+    std::vector<int16_t> screen_y_;
     std::vector<float> depth_;
     std::vector<float> zbuffer_;
     std::vector<float> edge_screen_x_;
