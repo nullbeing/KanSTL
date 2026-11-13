@@ -549,21 +549,22 @@ int runInteractive(const Options& options) {
                 mesh, camera, activeViewport(canvas, options.no_ui));
             dirty = true;
         } else if (key == Key::Auto) {
+            AutoRotateMode next = AutoRotateMode::Off;
             if (auto_mode == AutoRotateMode::Off) {
-                auto_mode = AutoRotateMode::X;
-                camera.roll_deg = 0.0f;
+                next = AutoRotateMode::X;
             } else if (auto_mode == AutoRotateMode::X) {
-                auto_mode = AutoRotateMode::Y;
-                camera.pitch_deg = home_camera.pitch_deg;
-                camera.roll_deg = 0.0f;
+                next = AutoRotateMode::Y;
             } else if (auto_mode == AutoRotateMode::Y) {
-                auto_mode = AutoRotateMode::Z;
-                camera.pitch_deg = home_camera.pitch_deg;
-                camera.roll_deg = 0.0f;
-            } else {
-                auto_mode = AutoRotateMode::Off;
+                next = AutoRotateMode::Z;
+            }
+
+            // Entering a mode starts face-on so each axis rotation is clean.
+            if (next != AutoRotateMode::Off) {
+                camera.yaw_deg = 0.0f;
+                camera.pitch_deg = 0.0f;
                 camera.roll_deg = 0.0f;
             }
+            auto_mode = next;
             dirty = true;
         } else if (key == Key::Style) {
             if (style == RenderMode::Solid) {
