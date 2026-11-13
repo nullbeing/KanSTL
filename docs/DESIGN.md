@@ -177,10 +177,13 @@ The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
 
-The bottom bar has three pills: an auto-rotate toggle at x=161 (`auto`,
-`auto x`, `auto y`, `auto z`; mint green when running) under the `6` key, a render-style button at x=217
-(`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a `files` button
-at x=273 under the `8` key. `8` opens the file browser.
+The bottom edge has no bar background: the axis readout and three pills float
+directly over the render. The axis text gets a one-pixel dark drop shadow for
+contrast. The pills are an auto-rotate toggle at x=161 (`auto`, `auto x`,
+`auto y`, `auto z`; mint green when running) under the `6` key, a render-style
+button at x=217 (`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a
+`files` button at x=273 under the `8` key. `8` opens the file browser. The 3D
+viewport extends to the bottom edge so models can sit behind them.
 
 Status bar: file name, triangle count, fps. The help overlay is
 a rounded, shadowed panel; keys are color-coded by group (cyan for view

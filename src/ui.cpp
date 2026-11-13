@@ -161,7 +161,9 @@ Rect viewportRect(int canvas_width, int canvas_height) {
     r.x = 0;
     r.y = kStatusHeight;
     r.w = canvas_width;
-    r.h = canvas_height - kStatusHeight - kHintHeight;
+    // The bottom bar has no background; its labels float over the render, so
+    // the viewport extends to the bottom edge.
+    r.h = canvas_height - kStatusHeight;
     return r;
 }
 
@@ -190,17 +192,23 @@ void drawUi(Canvas& canvas, const UiState& state) {
     }
     drawTextRight(canvas, w - 4, kTextTop, info, Theme::kText);
 
-    // Bottom hint bar.
+    // Bottom overlay: no bar background, labels float over the render.
     const int hint_y = h - kHintHeight;
-    canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
-    canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
+
+    // Dark 1px drop shadow keeps the colored axis text readable over light
+    // parts of the model.
+    auto draw_overlay_text = [&](int x, int y, const std::string& text,
+                                 uint16_t color) {
+        canvas.text(x + 1, y + 1, text, 0x0000);
+        canvas.text(x, y, text, color);
+    };
 
     int axis_x = kTextLeft;
     const int axis_y = hint_y + kTextTop;
     auto draw_axis = [&](char label, int value, uint16_t color) {
         char text[16];
         std::snprintf(text, sizeof(text), "%c%+d", label, value);
-        canvas.text(axis_x, axis_y, text, color);
+        draw_overlay_text(axis_x, axis_y, text, color);
         axis_x += canvas.textWidth(text) + FONT_6X8_WIDTH;
     };
     draw_axis('X', static_cast<int>(std::lround(state.camera.pitch_deg)),
