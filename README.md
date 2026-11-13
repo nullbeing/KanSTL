@@ -23,7 +23,7 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
 - Solid flat shading with a z-buffer and backface culling
 - EDGES mode: solid faces with dark crease lines and a bright silhouette
 - MATCAP mode: metallic normal-map shading with a specular highlight
-- `7` cycles solid / edges / matcap / wireframe; the bottom pill shows the
+- `7` cycles solid / edges / matcap / wireframe; the bottom button shows the
   current style
 - `6` cycles auto-rotate off / X pitch / Y yaw / Z model-axis roll (the Z
   axis is held horizontal); the tab turns mint green when active, and holding
@@ -35,8 +35,9 @@ wireframe toggle, rotate/zoom, and an in-app file browser.
   the model and overlays
 - `8` opens the file list; `Esc` is exit-only (hold 3 seconds)
 - Pixel-art UI using a 6x8 bitmap font, no LVGL dependency
-- Light-blue "files" pill in the bottom overlay, aligned with the physical 8 key
-- Bottom info and pills float over the render with no bar background
+- Raised light-blue "files" button in the bottom overlay, aligned with the
+  physical 8 key
+- Bottom info and raised buttons float over the render with no bar background
 - Offscreen PNG rendering for development without a device
 - Built-in benchmark mode
 - Runs as the normal `pi` user under APPLaunch
@@ -121,7 +122,7 @@ disabled past 1,000,000 triangles. Both are noted with a toast.
 
 ## Render styles
 
-`7` cycles solid → edges → matcap → wireframe, and the bottom pill shows the
+`7` cycles solid → edges → matcap → wireframe, and the bottom button shows the
 active style. Styles that need more memory or time than the current model
 allows are skipped.
 

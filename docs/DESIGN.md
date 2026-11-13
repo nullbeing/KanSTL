@@ -11,7 +11,7 @@
 - M3 complete: in-app file browser, remembered last directory, file sizes,
   modal loading popup with progress and load-error messages
 - M4 in progress: EDGES (feature + silhouette lines), MATCAP shading and a
-  render-style pill; decimation, quality modes and packaging assets remain
+  render-style button; decimation, quality modes and packaging assets remain
 - Device measurement (23,776 triangles): edges 17.8 ms/frame (~56 fps),
   matcap 10.1 ms/frame (~99 fps)
 
@@ -164,7 +164,7 @@ R            reset view and center
 7            cycle solid / edges / matcap / wireframe
 6            cycle auto-rotate off / X pitch / Y yaw / Z horizontal-axis roll;
              hold 0.6 s to stop auto-rotate
-8            open the file list (under the on-screen pill)
+8            open the file list (under the on-screen button)
 S            screenshot to ~/kanstl_screenshot_NNN.png
 H            help overlay
 Esc (3s)     hold to exit; an on-screen progress prompt is shown
@@ -178,11 +178,12 @@ The viewer shows a red/green/blue XYZ orientation gizmo in the top-right
 corner of the 3D viewport, with no frame or arrowheads, drawn above the model
 and over the UI overlays.
 
-The bottom edge has no bar background: the axis readout and three pills float
-directly over the render. The axis text gets a one-pixel dark drop shadow for
+The bottom edge has no bar background: the axis readout and three raised
+buttons float directly over the render. The axis text gets a one-pixel dark drop shadow for
 contrast. A tap on `6` cycles the auto modes on key release; holding it for
-0.6 s stops auto-rotate while the key is still down. The pills are an
-auto-rotate toggle at x=161 (`auto`, `auto x`,
+0.6 s stops auto-rotate while the key is still down. The buttons are drawn
+with a dark rim, a vertical face gradient, a top specular hem and a drop
+shadow. The auto-rotate toggle sits at x=161 (`auto`, `auto x`,
 `auto y`, `auto z`; mint green when running) under the `6` key, a render-style
 button at x=217 (`solid`, `edges`, `matcap` or `wire`) under the `7` key, and a
 `files` button at x=273 under the `8` key. `8` opens the file browser. The 3D

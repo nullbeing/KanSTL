@@ -63,6 +63,32 @@ void fillRoundRect(Canvas& canvas, int x, int y, int w, int h, int radius,
     }
 }
 
+void fillRoundRectGradient(Canvas& canvas, int x, int y, int w, int h,
+                           int radius, uint16_t top, uint16_t bottom) {
+    if (w <= 0 || h <= 0) return;
+    radius = std::max(0, std::min(radius, std::min(w / 2, h / 2)));
+
+    for (int row = 0; row < h; ++row) {
+        int inset = 0;
+        if (row < radius) {
+            const float dy = radius - (row + 0.5f);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        } else if (row >= h - radius) {
+            const float dy = (row + 0.5f) - (h - radius);
+            inset = radius - static_cast<int>(std::lround(
+                                 std::sqrt(radius * radius - dy * dy)));
+        }
+        const int row_width = w - 2 * inset;
+        if (row_width <= 0) continue;
+        const float t = h > 1 ? static_cast<float>(row) /
+                                    static_cast<float>(h - 1)
+                              : 0.0f;
+        canvas.fillRect(x + inset, y + row, row_width, 1,
+                        lerp565(top, bottom, t));
+    }
+}
+
 void fillRoundRectBlend(Canvas& canvas, int x, int y, int w, int h,
                         int radius, uint16_t color, float alpha) {
     if (w <= 0 || h <= 0) return;
@@ -103,10 +129,30 @@ void drawSoftShadow(Canvas& canvas, int px, int py, int w, int h,
 
 void drawLabelPill(Canvas& canvas, int center_x, int y, int height,
                    const std::string& label, uint16_t background) {
-    const int width = canvas.textWidth(label) + 6;
+    const int text_width = canvas.textWidth(label);
+    const int width = text_width + 9;
     const int x = center_x - width / 2;
-    fillRoundRect(canvas, x, y, width, height, 2, background);
-    canvas.text(x + 3, y + (height - 8) / 2, label, Theme::kPillText);
+    const int radius = 3;
+
+    // Drop shadow and a dark rim make the key look raised off the render.
+    fillRoundRectBlend(canvas, x + 1, y + 2, width - 1, height, radius,
+                       0x0000, 0.28f);
+    fillRoundRectBlend(canvas, x, y + 1, width, height, radius, 0x0000,
+                       0.18f);
+
+    const uint16_t rim = lerp565(background, 0x0000, 0.55f);
+    const uint16_t top = lerp565(background, 0xFFFF, 0.45f);
+    const uint16_t bottom = lerp565(background, 0x0000, 0.12f);
+
+    fillRoundRect(canvas, x, y, width, height, radius, rim);
+    fillRoundRectGradient(canvas, x + 1, y + 1, width - 2, height - 2,
+                          radius - 1, top, bottom);
+    // Specular hem along the top edge of the face.
+    fillRoundRect(canvas, x + 2, y + 1, width - 4, 1, 0,
+                  lerp565(top, 0xFFFF, 0.5f));
+
+    canvas.text(x + (width - text_width) / 2, y + (height - 8 + 1) / 2, label,
+                Theme::kPillText);
 }
 
 std::string humanSize(uint64_t bytes) {
@@ -218,8 +264,8 @@ void drawUi(Canvas& canvas, const UiState& state) {
     draw_axis('Z', static_cast<int>(std::lround(state.camera.roll_deg)),
               0x3C7F);
 
-    const int pill_h = 10;
-    const int pill_y = hint_y + (kHintHeight - pill_h) / 2;
+    const int pill_h = 12;
+    const int pill_y = hint_y - 2;
 
     // Auto-rotate toggle aligned with the "6" key (x=161).
     std::string auto_label = "auto";
@@ -266,7 +312,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
 
     // Help overlay: rounded elevated panel with a drop shadow.
     const int panel_w = 218;
-    const int panel_h = 148;
+    const int panel_h = 142;
     const int radius = 8;
     const int px = (w - panel_w) / 2;
     const int py = (h - panel_h) / 2;
