@@ -20,6 +20,7 @@ enum class Key {
     Shot,
     Files,
     Style,
+    Mute,
     Back,
     Esc,
 };

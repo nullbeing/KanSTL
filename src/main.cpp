@@ -21,6 +21,7 @@
 #include "keyboard.h"
 #include "png.h"
 #include "renderer.h"
+#include "sound.h"
 #include "stl_loader.h"
 #include "ui.h"
 
@@ -421,6 +422,7 @@ int runInteractive(const Options& options) {
 
     Canvas canvas(framebuffer.width(), framebuffer.height());
     Renderer renderer;
+    SoundPlayer sound;
 
     Camera camera{options.yaw, options.pitch, options.zoom};
     const Camera home_camera = camera;
@@ -498,8 +500,10 @@ int runInteractive(const Options& options) {
     auto saveScreenshot = [&]() {
         const std::string path = "/tmp/kanstl_shot.png";
         if (saveCanvasPng(canvas, path)) {
+            sound.play(SoundEffect::Success);
             toast = "SAVED " + path;
         } else {
+            sound.play(SoundEffect::Error);
             toast = "SCREENSHOT FAILED";
         }
         toast_until = std::chrono::steady_clock::now() +
@@ -533,10 +537,12 @@ int runInteractive(const Options& options) {
         Mesh loaded;
         std::string load_error;
         if (!loadStl(path, loaded, load_error, on_progress)) {
+            sound.play(SoundEffect::Error);
             browser.setError("LOAD FAILED: " + load_error);
             dirty = true;
             return false;
         }
+        sound.play(SoundEffect::Success);
 
         mesh = std::move(loaded);
         have_model = true;
@@ -556,9 +562,11 @@ int runInteractive(const Options& options) {
 
     auto handleViewerPress = [&](Key key) {
         if (key == Key::Reset) {
+            sound.play(SoundEffect::Key);
             camera = home_camera;
             dirty = true;
         } else if (key == Key::Fit) {
+            sound.play(SoundEffect::Key);
             camera.pivot_x = 0.0f;
             camera.pivot_y = 0.0f;
             camera.pivot_z = 0.0f;
@@ -587,8 +595,11 @@ int runInteractive(const Options& options) {
                 camera.roll_deg = 0.0f;
             }
             auto_mode = next;
+            sound.play(next == AutoRotateMode::Off ? SoundEffect::ToggleOff
+                                                   : SoundEffect::ToggleOn);
             dirty = true;
         } else if (key == Key::Style) {
+            sound.play(SoundEffect::Key);
             if (style == RenderMode::Solid) {
                 style = RenderMode::Edges;
             } else if (style == RenderMode::Edges) {
@@ -600,6 +611,7 @@ int runInteractive(const Options& options) {
             }
             dirty = true;
         } else if (key == Key::Files) {
+            sound.play(SoundEffect::Confirm);
             help = false;
             mode = AppMode::Browser;
             browser.reload();
@@ -609,11 +621,13 @@ int runInteractive(const Options& options) {
             for (HeldKey& state : held) state.active = false;
             dirty = true;
         } else if (key == Key::Help) {
+            sound.play(SoundEffect::Key);
             help = !help;
             dirty = true;
         } else if (key == Key::Shot) {
             saveScreenshot();
         } else if (isViewerRepeatable(key)) {
+            sound.play(SoundEffect::Key);
             HeldKey& state = held[keyIndex(key)];
             state.pivot = isArrowKey(key) && keyboard.altPressed();
             if (state.pivot) {
@@ -630,6 +644,7 @@ int runInteractive(const Options& options) {
 
     auto handleBrowserPress = [&](Key key) {
         if (key == Key::Up) {
+            sound.play(SoundEffect::Key);
             browser.moveSelection(-1);
             held[keyIndex(key)].active = true;
             held[keyIndex(key)].next_repeat =
@@ -637,6 +652,7 @@ int runInteractive(const Options& options) {
                 std::chrono::milliseconds(350);
             dirty = true;
         } else if (key == Key::Down) {
+            sound.play(SoundEffect::Key);
             browser.moveSelection(1);
             held[keyIndex(key)].active = true;
             held[keyIndex(key)].next_repeat =
@@ -644,12 +660,15 @@ int runInteractive(const Options& options) {
                 std::chrono::milliseconds(350);
             dirty = true;
         } else if (key == Key::PageUp) {
+            sound.play(SoundEffect::Key);
             browser.pageSelection(-1);
             dirty = true;
         } else if (key == Key::PageDown) {
+            sound.play(SoundEffect::Key);
             browser.pageSelection(1);
             dirty = true;
         } else if (key == Key::Enter) {
+            sound.play(SoundEffect::Confirm);
             std::string chosen;
             if (browser.activateSelected(chosen)) {
                 openModel(chosen);
@@ -657,9 +676,11 @@ int runInteractive(const Options& options) {
                 dirty = true;
             }
         } else if (key == Key::Left || key == Key::Back) {
+            sound.play(SoundEffect::Back);
             browser.goParent();
             dirty = true;
         } else if (key == Key::Reset) {
+            sound.play(SoundEffect::Key);
             browser.reload();
             dirty = true;
         }
@@ -691,7 +712,20 @@ int runInteractive(const Options& options) {
             bool pressed;
             while (keyboard.readEvent(key, pressed)) {
                 if (pressed) {
-                    if (key == Key::Esc) {
+                    if (key == Key::Mute) {
+                        if (sound.enabled()) {
+                            sound.play(SoundEffect::ToggleOff);
+                            sound.toggle();
+                        } else {
+                            sound.toggle();
+                            sound.play(SoundEffect::ToggleOn);
+                        }
+                        toast = sound.enabled() ? "SOUND ON" : "SOUND OFF";
+                        toast_until = std::chrono::steady_clock::now() +
+                                      std::chrono::milliseconds(1200);
+                        dirty = true;
+                    } else if (key == Key::Esc) {
+                        sound.play(SoundEffect::Back);
                         esc_pressed = std::chrono::steady_clock::now();
                         esc_down = true;
                         exit_prompt_visible = false;
