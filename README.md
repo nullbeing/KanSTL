@@ -155,7 +155,8 @@ Wireframe:
 directory.
 
 Only folders and `.stl` files are listed. The last directory and file selection
-are remembered in `~/.config/kanstl/last_dir`.
+are remembered in `~/.config/kanstl/last_dir`. A faded copy of the app icon
+sits behind the list as a watermark.
 
 Opening a model shows a modal progress popup:
 
