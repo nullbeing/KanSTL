@@ -194,12 +194,20 @@ void drawUi(Canvas& canvas, const UiState& state) {
     canvas.fillRect(0, hint_y, w, kHintHeight, Theme::kBarBackground);
     canvas.fillRect(0, hint_y, w, 1, Theme::kBarBorder);
 
-    char view[80];
-    std::snprintf(view, sizeof(view), "Y %+d P %+d Z %.2f",
-                  static_cast<int>(state.camera.yaw_deg),
-                  static_cast<int>(state.camera.pitch_deg),
-                  state.camera.zoom);
-    canvas.text(kTextLeft, hint_y + kTextTop, view, Theme::kText);
+    int axis_x = kTextLeft;
+    const int axis_y = hint_y + kTextTop;
+    auto draw_axis = [&](char label, int value, uint16_t color) {
+        char text[16];
+        std::snprintf(text, sizeof(text), "%c%+d", label, value);
+        canvas.text(axis_x, axis_y, text, color);
+        axis_x += canvas.textWidth(text) + FONT_6X8_WIDTH;
+    };
+    draw_axis('X', static_cast<int>(std::lround(state.camera.pitch_deg)),
+              0xF800);
+    draw_axis('Y', static_cast<int>(std::lround(state.camera.yaw_deg)),
+              0x07E0);
+    draw_axis('Z', static_cast<int>(std::lround(state.camera.roll_deg)),
+              0x3C7F);
 
     const int pill_h = 10;
     const int pill_y = hint_y + (kHintHeight - pill_h) / 2;

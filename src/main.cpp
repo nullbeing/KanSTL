@@ -424,7 +424,7 @@ int runInteractive(const Options& options) {
     Canvas canvas(framebuffer.width(), framebuffer.height());
     Renderer renderer;
 
-    Camera camera{options.yaw, options.pitch, options.zoom};
+    Camera camera{options.yaw, options.pitch, 0.0f, options.zoom};
     Camera home_camera = camera;
 
     Mesh mesh;
@@ -875,7 +875,7 @@ int runInteractive(const Options& options) {
 int runBenchmark(const Options& options, const Mesh& mesh) {
     Canvas canvas(kCanvasWidth, kCanvasHeight);
     Renderer renderer;
-    Camera camera{options.yaw, options.pitch, options.zoom};
+    Camera camera{options.yaw, options.pitch, 0.0f, options.zoom};
     UiState ui;
     ui.mesh = &mesh;
     ui.camera = camera;
@@ -906,7 +906,7 @@ int runBenchmark(const Options& options, const Mesh& mesh) {
 int renderScreenshot(const Options& options, Mesh& mesh) {
     Canvas canvas(kCanvasWidth, kCanvasHeight);
     Renderer renderer;
-    Camera camera{options.yaw, options.pitch, options.zoom};
+    Camera camera{options.yaw, options.pitch, 0.0f, options.zoom};
 
     UiState ui;
     ui.mesh = &mesh;
