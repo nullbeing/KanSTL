@@ -301,18 +301,12 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
 
     canvas.text(kTextLeft, kTextTop, displayPath(browser.directory()),
                 Theme::kTextBright);
-    drawTextRight(canvas, w - 4, kTextTop, count_text, 0xFE60);
+    drawTextRight(canvas, w - 4, kTextTop, count_text, Theme::kText);
 
     // Rows.
-    constexpr uint16_t kFolderColor = Theme::kAccent;
-    constexpr uint16_t kFileSmall = 0xBDF7;
-    constexpr uint16_t kFileMedium = 0x9FE6;
-    constexpr uint16_t kFileLarge = 0xFE60;
-    constexpr uint16_t kSelectedBg = 0x032F;
+    constexpr uint16_t kSelectedBg = 0x2945;
     constexpr uint16_t kSelectedText = 0xFFFF;
     constexpr uint16_t kSelectedDim = 0xCE79;
-    constexpr uint64_t kMediumSize = 256ULL * 1024ULL;
-    constexpr uint64_t kLargeSize = 4ULL * 1024ULL * 1024ULL;
 
     const int list_top = kStatusHeight;
     for (int row = 0; row < kBrowserRows; ++row) {
@@ -323,13 +317,9 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         const int y = list_top + row * kRowHeight;
         const bool selected = index == browser.selection();
 
-        uint16_t row_color = kFileSmall;
+        uint16_t row_color = Theme::kTextBright;
         if (entry.is_directory) {
-            row_color = entry.name == ".." ? Theme::kTextDim : kFolderColor;
-        } else if (entry.size >= kLargeSize) {
-            row_color = kFileLarge;
-        } else if (entry.size >= kMediumSize) {
-            row_color = kFileMedium;
+            row_color = entry.name == ".." ? Theme::kTextDim : Theme::kAccent;
         }
 
         if (selected) {
@@ -380,7 +370,7 @@ void drawBrowser(Canvas& canvas, const FileBrowser& browser) {
         x += 5 * FONT_6X8_WIDTH;
         canvas.text(x, y, " open  ", Theme::kText);
         x += 7 * FONT_6X8_WIDTH;
-        canvas.text(x, y, "R", 0xFE60);
+        canvas.text(x, y, "R", Theme::kAccent);
         x += FONT_6X8_WIDTH;
         canvas.text(x, y, " refresh", Theme::kText);
     }
