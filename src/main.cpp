@@ -424,6 +424,13 @@ int runInteractive(const Options& options) {
     Canvas canvas(framebuffer.width(), framebuffer.height());
     Renderer renderer;
 
+    // Screenshot confirmation glyph, blitted straight to the panel so it can
+    // never end up inside a saved screenshot.
+    constexpr uint16_t kIconTransparent = 0xF81F;
+    Canvas shot_icon(kCameraIconWidth, kCameraIconHeight);
+    shot_icon.clear(kIconTransparent);
+    drawCameraIcon(shot_icon, 0, 0, 0xFFFF);
+
     Camera camera{options.yaw, options.pitch, 0.0f, options.zoom};
     Camera home_camera = camera;
 
@@ -483,6 +490,8 @@ int runInteractive(const Options& options) {
     int fps = 0;
     std::string toast;
     auto toast_until = std::chrono::steady_clock::now();
+    bool shot_flash = false;
+    auto shot_flash_until = std::chrono::steady_clock::now();
 
     struct HeldKey {
         bool active = false;
@@ -522,12 +531,14 @@ int runInteractive(const Options& options) {
         }
 
         if (saveCanvasPng(canvas, path.string())) {
-            toast = "SAVED " + path.string();
+            shot_flash = true;
+            shot_flash_until = std::chrono::steady_clock::now() +
+                               std::chrono::milliseconds(800);
         } else {
             toast = "SCREENSHOT FAILED";
+            toast_until = std::chrono::steady_clock::now() +
+                          std::chrono::milliseconds(1600);
         }
-        toast_until = std::chrono::steady_clock::now() +
-                      std::chrono::milliseconds(1600);
         dirty = true;
     };
 
@@ -574,6 +585,7 @@ int runInteractive(const Options& options) {
         fps = 0;
         help = false;
         toast.clear();
+        shot_flash = false;
         mode = AppMode::Viewer;
         for (HeldKey& state : held) state.active = false;
         dirty = true;
@@ -819,6 +831,11 @@ int runInteractive(const Options& options) {
             dirty = true;
         }
 
+        if (shot_flash && now >= shot_flash_until) {
+            shot_flash = false;
+            dirty = true;
+        }
+
         if (dirty) {
             float exit_progress = 0.0f;
             if (esc_down) {
@@ -852,6 +869,14 @@ int runInteractive(const Options& options) {
                                   activeViewport(canvas, options.no_ui));
                 }
                 framebuffer.present(canvas);
+
+                if (shot_flash) {
+                    const int icon_x = canvas.width() - kCameraIconWidth - 8;
+                    const int icon_y = canvas.height() - hintBarHeight() -
+                                       kCameraIconHeight - 6;
+                    framebuffer.overlay(shot_icon, icon_x, icon_y,
+                                        kIconTransparent);
+                }
 
                 const auto render_end = std::chrono::steady_clock::now();
                 const double render_seconds =

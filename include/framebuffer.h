@@ -21,6 +21,12 @@ public:
     int height() const { return height_; }
 
     void present(const Canvas& canvas);
+
+    // Blit a sprite straight to the panel, skipping pixels equal to
+    // transparent_key. Used for transient overlays that must not appear in
+    // screenshots saved from the canvas.
+    void overlay(const Canvas& sprite, int x, int y, uint16_t transparent_key);
+
     void keepDisplayOn();
 
 private:

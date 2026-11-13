@@ -103,6 +103,26 @@ void Framebuffer::present(const Canvas& canvas) {
     }
 }
 
+void Framebuffer::overlay(const Canvas& sprite, int x, int y,
+                          uint16_t transparent_key) {
+    if (fd_ < 0 || sprite.width() <= 0 || sprite.height() <= 0) return;
+
+    for (int sy = 0; sy < sprite.height(); ++sy) {
+        const int dy = y + sy;
+        if (dy < 0 || dy >= height_) continue;
+        uint16_t* row = reinterpret_cast<uint16_t*>(
+            memory_ + static_cast<size_t>(dy) * stride_);
+        const uint16_t* source =
+            sprite.data() + static_cast<size_t>(sy) * sprite.width();
+        for (int sx = 0; sx < sprite.width(); ++sx) {
+            const int dx = x + sx;
+            if (dx < 0 || dx >= width_) continue;
+            if (source[sx] == transparent_key) continue;
+            row[dx] = source[sx];
+        }
+    }
+}
+
 void Framebuffer::keepDisplayOn() {
     if (fd_ >= 0) {
         ioctl(fd_, FBIOBLANK, FB_BLANK_UNBLANK);
