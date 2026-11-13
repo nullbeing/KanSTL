@@ -262,7 +262,7 @@ void drawUi(Canvas& canvas, const UiState& state) {
               0x3C7F);
 
     const int pill_h = 12;
-    const int pill_y = hint_y - 8;
+    const int pill_y = hint_y - 2;
 
     // The buttons and their key guides would collide with the help panel.
     if (!state.help) {
@@ -289,12 +289,6 @@ void drawUi(Canvas& canvas, const UiState& state) {
         drawLabelPill(canvas, 273, pill_y, pill_h, "files",
                       Theme::kPillBackground);
 
-        // 1px guides pointing down at the physical 6 / 7 / 8 keys.
-        constexpr int kKeyGuides[] = {161, 217, 273};
-        const int guide_top = pill_y + pill_h;
-        for (int x : kKeyGuides) {
-            canvas.fillRect(x, guide_top, 1, h - guide_top, 0x52AA);
-        }
     }
 
     // Transient toast (screenshot saved, etc.), styled like the other popups.
