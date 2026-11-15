@@ -1,0 +1,18 @@
+Source: kanstl
+Section: graphics
+Priority: optional
+Maintainer: Weiming Feng <bestedwin@gmail.com>
+Build-Depends: debhelper (>= 10), cmake, g++-aarch64-linux-gnu
+Standards-Version: 4.1.3
+
+Package: kanstl
+Architecture: arm64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: STL 3D model viewer for the Cardputer Zero
+ KanSTL opens binary or ASCII STL files from a built-in file browser and
+ renders them into a 320x170 RGB565 framebuffer with its own software
+ rasterizer: flat shaded, EDGES, MATCAP and wireframe styles, rotate and
+ zoom, auto-rotation and an XYZ orientation gizmo.
+ .
+ It registers with APPLaunch, needs no external 3D engine or LVGL, and runs
+ as the normal desktop user.

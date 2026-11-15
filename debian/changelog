@@ -1,0 +1,18 @@
+kanstl (0.1.0) trixie; urgency=medium
+
+  * First public release: an STL 3D model viewer for the Cardputer Zero
+  * In-app file browser with folders, file sizes, load errors and a
+    remembered last directory
+  * Binary and ASCII STL loading, models centred and fitted to the
+    320x170 viewport
+  * SOLID, EDGES and MATCAP render styles plus WIREFRAME, cycled with 7
+  * Arrow keys rotate, Enter/Space zoom, Alt + arrows move the rotation
+    centre, R/0 reset the view
+  * Auto-rotation around X, Y or the model's own Z axis (6), held 0.6 s
+    to stop
+  * XYZ orientation gizmo, triangle count and live frame rate
+  * Esc exits only after a 3 second hold, with an on-screen progress bar
+  * Packages for APPLaunch: desktop entry, wrapper and icon, no LVGL and
+    no external 3D engine
+
+ -- Weiming Feng <bestedwin@gmail.com>  Sun, 15 Nov 2026 22:10:00 +0800

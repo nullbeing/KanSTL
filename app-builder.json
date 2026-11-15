@@ -1,0 +1,50 @@
+{
+  "app_name": "KanSTL",
+  "package_name": "kanstl",
+  "bin_name": "kanstl",
+  "version": "0.1.0",
+  "runtime": "legacy-deb-only",
+  "description": "STL 3D model viewer for the Cardputer Zero: browse, open and inspect binary or ASCII STL files on the 320x170 screen.",
+  "store": {
+    "summary": "Pocket STL 3D viewer: browse, open and inspect models on the Cardputer Zero",
+    "description": "KanSTL is a pocket 3D model viewer: open an STL file from the built-in file browser and rotate it on the 320x170 screen. The renderer, the file browser and the pixel UI are original code with no LVGL or 3D engine behind them.\n\nFEATURES\n- In-app file browser: folders, file sizes, load errors, and the last directory is remembered\n- Binary and ASCII STL; models are centred and fitted to the viewport automatically\n- Four render styles on one key: SOLID, EDGES (dark creases plus a bright silhouette), MATCAP (metallic shading with a specular highlight) and WIREFRAME\n- Arrow keys rotate, Enter / Space zoom, Alt + arrows move the rotation centre, R / 0 reset the view\n- Auto-rotate around X, Y or the model's own Z axis; hold 6 for 0.6 s to stop it\n- XYZ orientation gizmo, triangle count and live frame rate in the status bar\n- Esc only exits after a deliberate 3 second hold, with an on-screen progress bar\n- Runs as the normal user under APPLaunch; no root, no background service\n\nSPEED ON THE DEVICE\n- 12k triangles: about 8 ms per frame\n- 1.9M triangles: about 1 second per frame (works, but EDGES is skipped above 500k triangles to stay inside the memory budget)\n\nNOTES\n- Models are read from the device filesystem; put STL files in /home/pi/models (or anywhere the file browser can reach) over SSH or a USB stick.\n- No network access is used.",
+    "locales": {
+      "zh-CN": {
+        "summary": "口袋 STL 3D 模型查看器：在 Cardputer Zero 上浏览、打开、旋转模型",
+        "description": "KanSTL 是一个口袋 3D 模型查看器：在内置文件浏览器里打开 STL 文件，然后在 320×170 的屏幕上旋转查看。渲染器、文件浏览器和像素 UI 都是自己写的代码，不依赖 LVGL，也没有 3D 引擎。\n\n功能\n- 内置文件浏览器：文件夹、文件大小、加载错误提示，会记住上次的目录\n- 支持二进制与 ASCII STL；模型自动居中并适配视口\n- 四种渲染风格一键循环：SOLID、EDGES（深色折痕 + 亮色轮廓）、MATCAP（金属质感 + 高光）、WIREFRAME\n- 方向键旋转，Enter / Space 缩放，Alt + 方向键移动旋转中心，R / 0 复位\n- 可绕 X、Y 或模型自身 Z 轴自动旋转；长按 6 键 0.6 秒停止\n- 右上角 XYZ 方向指示，状态栏显示三角面数量和实时帧率\n- 退出需要长按 Esc 3 秒，屏幕上有进度条\n- 以普通用户身份在 APPLaunch 下运行，不需要 root，也不安装后台服务\n\n设备上的速度\n- 12k 三角面：约 8 ms 一帧\n- 190 万三角面：约 1 秒一帧（能打开，但超过 50 万面时会跳过 EDGES，以免超出内存）\n\n说明\n- 模型从设备文件系统读取：可以通过 SSH 或 U 盘把 STL 放进 /home/pi/models（或文件浏览器能到达的任意目录）。\n- 不使用网络。"
+      },
+      "ja": {
+        "summary": "ポケット STL 3D ビューア：Cardputer Zero でモデルを開いて回せる"
+      }
+    },
+    "icon": "store/icon.png",
+    "screenshots": [
+      "store/screenshots/screenshot1.png",
+      "store/screenshots/screenshot2.png",
+      "store/screenshots/screenshot3.png",
+      "store/screenshots/screenshot4.png",
+      "store/screenshots/screenshot5.png",
+      "store/screenshots/screenshot6.png"
+    ],
+    "categories": [
+      "Creative & Office",
+      "System Tools"
+    ],
+    "permissions": {
+      "camera": false,
+      "microphone": false,
+      "imu": false,
+      "network": false,
+      "additional_hardware": false,
+      "background_service": false,
+      "external_display": false
+    },
+    "author": {
+      "display_name": "Weiming Feng",
+      "github": "nullbeing"
+    },
+    "source_repo": "https://github.com/nullbeing/KanSTL",
+    "license": "GPL-3.0-only",
+    "share_code": "KSTL"
+  }
+}

@@ -197,14 +197,31 @@ Holding `Esc` for 3 seconds exits; a progress prompt appears while holding:
 
 ## Install on the device
 
-From the repository root on the Cardputer Zero:
+KanSTL is in the Cardputer Zero AppStore: open the store, find **KanSTL** and
+install it. On the device shell the same package is:
+
+```bash
+sudo apt update && sudo apt install kanstl
+```
+
+To install from a source checkout instead:
 
 ```bash
 BUILD=build-aarch64 ./scripts/install-device.sh
 ```
 
-This installs the binary, `.desktop` entry and icon under
+Both install the binary, the `.desktop` entry and the icon under
 `/usr/share/APPLaunch`.
+
+### Building the package
+
+```bash
+packaging/build-deb.sh                 # cross-compile and pack into dist/
+packaging/build-deb.sh --no-build      # pack the existing build-aarch64/kanstl
+```
+
+The version comes from `app-builder.json`; the package installs
+`/usr/bin/kanstl` plus the APPLaunch entry, wrapper and icon.
 
 ## Examples
 
